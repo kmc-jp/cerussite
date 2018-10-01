@@ -1,0 +1,6 @@
+[package]
+name = "cerussite"
+version = "0.1.0"
+authors = ["Kyoto-U Microcomputer Club <info@kmc.gr.jp>"]
+
+[dependencies]
