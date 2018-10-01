@@ -1,3 +1,6 @@
 language: rust
 rust:
   - stable
+
+notifications:
+  slack: kmc-jp:OsbOUDQMNlIePv2IhnFrMAKI
