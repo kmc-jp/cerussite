@@ -6,7 +6,7 @@ pub struct Tokenizer<'a> {
 }
 
 impl<'a> Tokenizer<'a> {
-    pub fn new(source: &'a str) -> impl Iterator<Item = &'a str> {
+    pub fn from_source(source: &'a str) -> impl Iterator<Item = &'a str> {
         // currently the supported delimiters are [' ', '\n'].
         source
             .split(' ')

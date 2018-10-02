@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut source = String::new();
     File::open(&*file_name)?.read_to_string(&mut source)?;
 
-    let tokens: Vec<&str> = Tokenizer::new(&source).collect();
+    let tokens: Vec<&str> = Tokenizer::from_source(&source).collect();
 
     eprintln!("{:?}", tokens);
 
