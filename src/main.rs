@@ -22,12 +22,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let tokens = tokenize(&source);
 
     eprintln!("{:?}", tokens);
-    /* // this can be used in only nightly
-    let tokens = match &tokens[..] {
-        &["int", "main", "(", "void", ")", "{", "return", ref tokens.., ";", "}"] => tokens,
-        _ => panic!("comilation error"),
-    };
-    */
     let tokens = match (&tokens[0..7], &tokens[tokens.len() - 2..]) {
         (&["int", "main", "(", "void", ")", "{", "return"], &[";", "}"]) => {
             &tokens[7..tokens.len() - 2]
