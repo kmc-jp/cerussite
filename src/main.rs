@@ -22,6 +22,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let tokens = tokenize(&source);
 
     eprintln!("{:?}", tokens);
+
+    assert!(tokens.len() >= 9);
+
     let tokens = match (&tokens[0..7], &tokens[tokens.len() - 2..]) {
         (&["int", "main", "(", "void", ")", "{", "return"], &[";", "}"]) => {
             &tokens[7..tokens.len() - 2]
