@@ -3,15 +3,9 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 
-fn tokenize(source: &str) -> Vec<&str> {
-    // currently the supported delimiters are [' ', '\n'].
-    source
-        .split(' ')
-        .flat_map(|x| x.split('\n'))
-        .map(str::trim)
-        .filter(|&x| x != "")
-        .collect()
-}
+mod tokenizer;
+
+use tokenizer::Tokenizer;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let file_name = env::args().nth(1).expect("no file name supplied.");
@@ -19,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut source = String::new();
     File::open(&*file_name)?.read_to_string(&mut source)?;
 
-    let tokens = tokenize(&source);
+    let tokens: Vec<&str> = Tokenizer::new(&source).collect();
 
     eprintln!("{:?}", tokens);
 
