@@ -1,56 +1,76 @@
-use std::iter::Peekable;
-use std::str::CharIndices;
+use itertools::Itertools;
 
+use std::iter::Peekable;
+
+/// split the source code into tokens
 pub struct Tokenizer<'a> {
+    /// entire source code
     source: &'a str,
-    chars: Peekable<CharIndices<'a>>,
+
+    /// (starting, ending, character)
+    /// this is Peekable to use peeking_take_while().
+    chars: Peekable<Box<dyn Iterator<Item = (usize, usize, char)> + 'a>>,
 }
 
 impl<'a> Tokenizer<'a> {
     pub fn from_source(source: &'a str) -> Tokenizer {
         Tokenizer {
             source: source,
-            chars: source.char_indices().peekable(),
+            chars: gen_bid_char_indices(source),
         }
     }
+}
+
+/// generate char_indices that having (starting, ending, char)
+fn gen_bid_char_indices<'a>(
+    source: &'a str,
+) -> Peekable<Box<dyn Iterator<Item = (usize, usize, char)> + 'a>> {
+    let ending_indices = source
+        .char_indices()
+        .map(|(pos, _)| pos)
+        .skip(1)
+        .chain(Some(source.len()).into_iter());
+
+    let bid_char_indices = source
+        .char_indices()
+        .zip(ending_indices)
+        .map(|((starting, ch), ending)| (starting, ending, ch));
+
+    let bid_char_indices: Box<dyn Iterator<Item = (usize, usize, char)>> =
+        Box::new(bid_char_indices);
+
+    bid_char_indices.peekable()
 }
 
 impl<'a> Iterator for Tokenizer<'a> {
     type Item = &'a str;
 
+    /// find a next token starting from current position (if it is whitespace, skips them and from
+    /// a next non-whitespace character).  if entire source code consumed, this returns None.
     fn next(&mut self) -> Option<Self::Item> {
-        // inside loop, find chars between the current position and the next
-        // whitespace char. if that string's length is >= 1, this returns it
-        // as a token. if it can't found any chars (for example, when several
-        // whitespace chars appear sequencially), loop continues and retries
-        // this operation.  if all all source code consumed, this returns
-        // None.
-        loop {
-            // if whole source code has been read, returns None.
-            // otherwise, store the current position.
-            let first = match self.chars.peek() {
-                None => return None,
-                Some(&(first, _)) => first,
-            };
+        // skip whitespace
+        self.chars
+            .peeking_take_while(|&(_, _, ch)| ch.is_whitespace())
+            .for_each(drop);
 
-            // find the last char before a whitespace char
-            let last_char = self.chars.find(|(_, ch)| ch.is_whitespace());
+        // get first char position. if there isn't, returns None.
+        let first = self.chars.peek().map(|&(first, _, _)| first)?;
 
-            match last_char {
-                Some((last, _)) if first < last => {
-                    // we can get token here, returns that.
-                    return Some(&self.source[first..last]);
-                }
-                None => {
-                    // consumed all source code.
-                    // there are at least one character, so we can safely
-                    // return this (no need to concern blank string)
-                    return Some(&self.source[first..]);
-                }
-                _ => {}
-            }
+        // to avoid borrowing self in closure
+        let source = self.source;
 
-            // otherwise, loop continues and retries this process.
-        }
+        // find longest token
+        let last = self
+            .chars
+            .peeking_take_while(|&(_, pos, _)| is_valid_token(&source[first..pos]))
+            .fold(first, |_, (_, pos, _)| pos);
+
+        Some(&source[first..last])
     }
+}
+
+/// check if given `s` is valid token or not.
+/// TODO: under construction.
+fn is_valid_token(s: &str) -> bool {
+    true
 }
