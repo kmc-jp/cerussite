@@ -1,3 +1,5 @@
+extern crate itertools;
+
 use std::env;
 use std::error::Error;
 use std::fs::File;
