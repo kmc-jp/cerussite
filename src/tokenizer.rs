@@ -45,7 +45,7 @@ fn gen_bid_char_indices<'a>(
 impl<'a> Iterator for Tokenizer<'a> {
     type Item = &'a str;
 
-    /// find a next token starting from current position (if it is whitespace, skips them and from
+    /// find a next token starting from current position (is it whitespace, skips them and from
     /// a next non-whitespace character).  if entire source code consumed, this returns None.
     fn next(&mut self) -> Option<Self::Item> {
         // skip whitespace
@@ -70,7 +70,33 @@ impl<'a> Iterator for Tokenizer<'a> {
 }
 
 /// check if given `s` is valid token or not.
-/// TODO: under construction.
+/// TODO: under construction. maybe regex is used in the future?
 fn is_valid_token(s: &str) -> bool {
-    true
+    eprintln!("checking s: {:?}", s);
+    // is it a number?
+    if let Ok(_) = s.parse::<i32>() {
+        return true;
+    }
+
+    // is it a keyword (or the beginning of keyword)?
+    let keywords = ["int", "main", "void", "return"];
+    if keywords.iter().any(|kw| kw.starts_with(s)) {
+        return true;
+    }
+
+    // is it a symbol?
+    let symbols = ["(", ")", "{", "}", ";"];
+    if symbols.iter().any(|sym| sym.starts_with(s)) {
+        return true;
+    }
+
+    // is it a operator?
+    let operators = ["+"];
+    if operators.iter().any(|op| op.starts_with(s)) {
+        return true;
+    }
+
+    // otherwise, it's not a valid token.
+    eprintln!("  is not a valid token.");
+    false
 }
