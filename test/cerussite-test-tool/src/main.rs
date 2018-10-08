@@ -224,89 +224,105 @@ fn main() -> io::Result<()> {
         },
     )?;
 
-    walk_dir(
-        &test_src_dir,
-        |path| path.extension().and_then(OsStr::to_str) == Some("c"),
-        |path| {
-            colored_print!{
-                colorize();
-                LightGreen, " Testing ";
-                Reset, "file ";
-                Yellow, "{}", path.display();
-                Reset, " ... ";
+    let mut path_to_test: Vec<_> = env::args()
+        .skip(1)
+        .filter(|arg| !arg.starts_with("-"))
+        .map(|file_name| test_src_dir.join(file_name))
+        .collect();
+
+    if path_to_test.is_empty() {
+        path_to_test = walk_dir(
+            &test_src_dir,
+            |path| path.extension().and_then(OsStr::to_str) == Some("c"),
+            |path| Ok(path.to_path_buf()),
+        )?;
+    }
+
+    for path in path_to_test {
+        colored_print!{
+            colorize();
+            LightGreen, " Testing ";
+            Reset, "file ";
+            Yellow, "{}", path.display();
+            Reset, " ... ";
+        }
+
+        if !path.exists() {
+            println!("not found");
+            continue;
+        }
+
+        let ref_compile = reference_compile(&path)?;
+        let ref_assemble = compile_llvm_ir(&ref_compile.ir_path)?;
+        let ref_execute = execute(&ref_assemble.exec_path)?;
+
+        let cur_compile = current_compile(&path)?;
+        let cur_assemble = compile_llvm_ir(&cur_compile.ir_path)?;
+        let cur_execute = execute(&cur_assemble.exec_path)?;
+
+        let ref_res = (&ref_execute.status, &ref_execute.stdout);
+        let cur_res = (&cur_execute.status, &cur_execute.stdout);
+        let status = ref_res == cur_res;
+        let (color, judge) = if status { (Green, "OK") } else { (Red, "NG") };
+
+        colored_println!{
+            colorize();
+            color, "{}", judge;
+        }
+
+        // print info when verbose mode or something fails
+        if verbose || !status {
+            print_heading(LightGreen, "===>", "Reference");
+
+            print_heading(Cyan, "->", "Compilation (C)");
+            if !ref_compile.cc_output.is_empty() {
+                print_stderr(&ref_compile.cc_output);
+            }
+            print_output(None, &ref_compile.llvm_ir);
+
+            print_heading(Cyan, "->", "Compilation (LLVM IR)");
+            if !ref_assemble.asm_output.is_empty() {
+                print_stderr(&ref_assemble.asm_output);
             }
 
-            let ref_compile = reference_compile(path)?;
-            let ref_assemble = compile_llvm_ir(&ref_compile.ir_path)?;
-            let ref_execute = execute(&ref_assemble.exec_path)?;
+            print_heading(Cyan, "->", "Execution");
+            if !ref_execute.stderr.is_empty() {
+                print_stderr(&ref_execute.stderr);
+            }
+            print_output(ref_execute.status, &ref_execute.stdout);
 
-            let cur_compile = current_compile(path)?;
-            let cur_assemble = compile_llvm_ir(&cur_compile.ir_path)?;
-            let cur_execute = execute(&cur_assemble.exec_path)?;
+            // -------------------------------------------------------------------------------
 
-            let ref_res = (&ref_execute.status, &ref_execute.stdout);
-            let cur_res = (&cur_execute.status, &cur_execute.stdout);
-            let status = ref_res == cur_res;
-            let (color, judge) = if status { (Green, "OK") } else { (Red, "NG") };
+            print_heading(LightGreen, "===>", "Current");
 
-            colored_println!{
-                colorize();
-                color, "{}", judge;
+            print_heading(Cyan, "->", "Compilation (C)");
+            if !cur_compile.cc_output.is_empty() {
+                print_stderr(&cur_compile.cc_output);
+            }
+            print_output(None, &cur_compile.llvm_ir);
+
+            print_heading(Cyan, "->", "Compilation (LLVM IR)");
+            if !cur_assemble.asm_output.is_empty() {
+                print_stderr(&cur_assemble.asm_output);
             }
 
-            // print info when verbose mode or something fails
-            if verbose || !status {
-                print_heading(LightGreen, "===>", "Reference");
-
-                print_heading(Cyan, "->", "Compilation (C)");
-                if !ref_compile.cc_output.is_empty() {
-                    print_stderr(&ref_compile.cc_output);
-                }
-                print_output(None, &ref_compile.llvm_ir);
-
-                print_heading(Cyan, "->", "Compilation (LLVM IR)");
-                if !ref_assemble.asm_output.is_empty() {
-                    print_stderr(&ref_assemble.asm_output);
-                }
-
-                print_heading(Cyan, "->", "Execution");
-                if !ref_execute.stderr.is_empty() {
-                    print_stderr(&ref_execute.stderr);
-                }
-                print_output(ref_execute.status, &ref_execute.stdout);
-
-                // -------------------------------------------------------------------------------
-
-                print_heading(LightGreen, "===>", "Current");
-
-                print_heading(Cyan, "->", "Compilation (C)");
-                if !cur_compile.cc_output.is_empty() {
-                    print_stderr(&cur_compile.cc_output);
-                }
-                print_output(None, &cur_compile.llvm_ir);
-
-                print_heading(Cyan, "->", "Compilation (LLVM IR)");
-                if !cur_assemble.asm_output.is_empty() {
-                    print_stderr(&cur_assemble.asm_output);
-                }
-
-                print_heading(Cyan, "->", "Execution");
-                if !cur_execute.stderr.is_empty() {
-                    print_stderr(&cur_execute.stderr);
-                }
-                print_output(cur_execute.status, &cur_execute.stdout);
+            print_heading(Cyan, "->", "Execution");
+            if !cur_execute.stderr.is_empty() {
+                print_stderr(&cur_execute.stderr);
             }
+            print_output(cur_execute.status, &cur_execute.stdout);
+        }
+    }
 
-            Ok(())
-        },
-    )
+    Ok(())
 }
 
-fn walk_dir(
+fn walk_dir<T>(
     dir: &Path,
     path_filter: impl Fn(&Path) -> bool + Copy,
-    cb: impl Fn(&Path) -> io::Result<()> + Copy,
-) -> io::Result<()> {
+    cb: impl Fn(&Path) -> io::Result<T> + Copy,
+) -> io::Result<Vec<T>> {
+    let mut result = Vec::new();
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
@@ -317,9 +333,9 @@ fn walk_dir(
         if path.is_dir() {
             walk_dir(&path, path_filter, cb)?;
         } else {
-            cb(&path)?;
+            result.push(cb(&path)?);
         }
     }
 
-    Ok(())
+    Ok(result)
 }
