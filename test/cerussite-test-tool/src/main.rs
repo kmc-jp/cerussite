@@ -21,9 +21,15 @@ fn prefixed_file_name(path: &Path, prefix: &str) -> String {
     format!("{}{}", prefix, name)
 }
 
+struct CompilerResult {
+    ir_path: PathBuf,
+    llvm_ir: String,
+    cc_output: String,
+}
+
 /// returns the result of compilation with clang (for reference)
-fn reference_compile(src_path: &Path) -> io::Result<(PathBuf, String)> {
-    let output_path = {
+fn reference_compile(src_path: &Path) -> io::Result<CompilerResult> {
+    let ir_path = {
         let output_name = prefixed_file_name(&src_path, "ref_");
         src_path.with_file_name(output_name).with_extension("ll")
     };
@@ -34,27 +40,33 @@ fn reference_compile(src_path: &Path) -> io::Result<(PathBuf, String)> {
         .arg("-S")
         .arg("-emit-llvm")
         .arg("-o")
-        .arg(output_path.display().to_string())
+        .arg(ir_path.display().to_string())
         .arg(src_path.display().to_string())
         .output()?;
 
-    if !output.stderr.is_empty() {
-        print_stderr(String::from_utf8_lossy(&output.stderr));
+    let cc_output = String::from_utf8_lossy(&output.stderr).into_owned();
+
+    if !ir_path.exists() {
+        return Ok(CompilerResult {
+            ir_path,
+            cc_output,
+            llvm_ir: String::new(),
+        });
     }
 
-    if !output_path.exists() {
-        return Ok((output_path, "(compilation failed)".into()));
-    }
+    let mut llvm_ir = String::new();
+    File::open(&ir_path)?.read_to_string(&mut llvm_ir)?;
 
-    let mut output_file_string = String::new();
-    File::open(&output_path)?.read_to_string(&mut output_file_string)?;
-
-    Ok((output_path, output_file_string))
+    Ok(CompilerResult {
+        ir_path,
+        llvm_ir,
+        cc_output,
+    })
 }
 
-/// returns the result of compilation with our current compiler
-fn current_compile(src_path: &Path) -> io::Result<(PathBuf, String)> {
-    let output_path = {
+/// returns the llvm_ir of compilation with our current compiler
+fn current_compile(src_path: &Path) -> io::Result<CompilerResult> {
+    let ir_path = {
         let output_name = prefixed_file_name(&src_path, "cur_");
         src_path.with_file_name(output_name).with_extension("ll")
     };
@@ -66,46 +78,67 @@ fn current_compile(src_path: &Path) -> io::Result<(PathBuf, String)> {
         .arg(src_path.display().to_string())
         .output()?;
 
-    if !output.stderr.is_empty() {
-        print_stderr(String::from_utf8_lossy(&output.stderr));
-    }
+    let cc_output = String::from_utf8_lossy(&output.stderr).into_owned();
+    File::create(&ir_path)?.write_all(&output.stdout)?;
+    let llvm_ir = String::from_utf8_lossy(&output.stdout).into_owned();
 
-    File::create(&output_path)?.write_all(&output.stdout)?;
-    let output_file_string = String::from_utf8_lossy(&output.stdout).into_owned();
-
-    Ok((output_path, output_file_string))
+    Ok(CompilerResult {
+        ir_path,
+        llvm_ir,
+        cc_output,
+    })
 }
 
-fn compile_llvm_ir(src_path: &Path) -> io::Result<PathBuf> {
-    let output_path = if cfg!(windows) {
+struct AssemblerResult {
+    asm_output: String,
+    exec_path: PathBuf,
+}
+
+fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblerResult> {
+    let exec_path = if cfg!(windows) {
         src_path.with_extension("exe")
     } else {
-        src_path.with_file_name(
-            src_path
-                .file_stem()
-                .expect("internal error: no file has no basename"),
-        )
+        let file_name = src_path
+            .file_stem()
+            .expect("internal error: no file has no basename");
+        src_path.with_file_name(file_name)
     };
 
-    if src_path.exists() {
-        let output = Command::new("clang")
-            .arg("-o")
-            .arg(&output_path)
-            .arg(&src_path)
-            .output()?;
-
-        if !output.stderr.is_empty() {
-            print_stderr(String::from_utf8_lossy(&output.stderr));
-        }
+    if !src_path.exists() {
+        return Ok(AssemblerResult {
+            exec_path,
+            asm_output: String::new(),
+        });
     }
 
-    Ok(output_path)
+    let output = Command::new("clang")
+        .arg("-o")
+        .arg(&exec_path)
+        .arg(&src_path)
+        .output()?;
+
+    let asm_output = String::from_utf8_lossy(&output.stderr).into_owned();
+
+    Ok(AssemblerResult {
+        asm_output,
+        exec_path,
+    })
+}
+
+struct ExecutionResult {
+    status: Option<i32>,
+    stdout: String,
+    stderr: String,
 }
 
 /// returns the execution of the binary placed in the specified path
-fn execute(path: &Path) -> io::Result<(Option<i32>, String)> {
+fn execute(path: &Path) -> io::Result<ExecutionResult> {
     if !path.exists() {
-        return Ok((None, "(executable not found)".into()));
+        return Ok(ExecutionResult {
+            status: None,
+            stdout: String::new(),
+            stderr: String::new(),
+        });
     }
 
     let mut child = Command::new(&path)
@@ -126,12 +159,13 @@ fn execute(path: &Path) -> io::Result<(Option<i32>, String)> {
     let (mut stdout, mut stderr) = (String::new(), String::new());
     child_stdout.read_to_string(&mut stdout)?;
     child_stderr.read_to_string(&mut stderr)?;
+    let status = status.code();
 
-    if !stderr.is_empty() {
-        print_stderr(stderr);
-    }
-
-    Ok((status.code(), stdout))
+    Ok(ExecutionResult {
+        status,
+        stdout,
+        stderr,
+    })
 }
 
 fn print_stderr(stderr: impl Display) {
@@ -188,35 +222,57 @@ fn main() -> io::Result<()> {
             Yellow, "{}\n", entry.path().display();
         }
 
+        let ref_compile = reference_compile(&entry.path())?;
+        let ref_assemble = compile_llvm_ir(&ref_compile.ir_path)?;
+        let ref_execute = execute(&ref_assemble.exec_path)?;
+
+        let cur_compile = current_compile(&entry.path())?;
+        let cur_assemble = compile_llvm_ir(&cur_compile.ir_path)?;
+        let cur_execute = execute(&cur_assemble.exec_path)?;
+
         print_heading(LightGreen, "===>", "Reference");
 
         print_heading(Cyan, "->", "Compilation (C)");
-        let (ref_llvm_ir, ref_compile) = reference_compile(&entry.path())?;
-        print_output(None, &ref_compile);
+        if !ref_compile.cc_output.is_empty() {
+            print_stderr(&ref_compile.cc_output);
+        }
+        print_output(None, &ref_compile.llvm_ir);
 
         print_heading(Cyan, "->", "Compilation (LLVM IR)");
-        let ref_execfile = compile_llvm_ir(&ref_llvm_ir)?;
+        if !ref_assemble.asm_output.is_empty() {
+            print_stderr(&ref_assemble.asm_output);
+        }
 
         print_heading(Cyan, "->", "Execution");
-        let (ref_retval, ref_output) = execute(&ref_execfile)?;
-        print_output(ref_retval, &ref_output);
+        if !ref_execute.stderr.is_empty() {
+            print_stderr(&ref_execute.stderr);
+        }
+        print_output(ref_execute.status, &ref_execute.stdout);
 
         // -------------------------------------------------------------------------------
 
         print_heading(LightGreen, "===>", "Current");
 
         print_heading(Cyan, "->", "Compilation (C)");
-        let (cur_llvm_ir, cur_compile) = current_compile(&entry.path())?;
-        print_output(None, &cur_compile);
+        if !cur_compile.cc_output.is_empty() {
+            print_stderr(&cur_compile.cc_output);
+        }
+        print_output(None, &cur_compile.llvm_ir);
 
         print_heading(Cyan, "->", "Compilation (LLVM IR)");
-        let cur_execfile = compile_llvm_ir(&cur_llvm_ir)?;
+        if !cur_assemble.asm_output.is_empty() {
+            print_stderr(&cur_assemble.asm_output);
+        }
 
         print_heading(Cyan, "->", "Execution");
-        let (cur_retval, cur_output) = execute(&cur_execfile)?;
-        print_output(cur_retval, &cur_output);
+        if !cur_execute.stderr.is_empty() {
+            print_stderr(&cur_execute.stderr);
+        }
+        print_output(cur_execute.status, &cur_execute.stdout);
 
-        let (color, judge) = if (ref_retval, ref_output) == (cur_retval, cur_output) {
+        let (color, judge) = if (ref_execute.status, ref_execute.stdout)
+            == (cur_execute.status, cur_execute.stdout)
+        {
             (Green, "OK")
         } else {
             (Red, "NG")
