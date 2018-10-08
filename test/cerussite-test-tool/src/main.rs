@@ -6,9 +6,10 @@ use colored_print::color::ConsoleColor;
 use colored_print::color::ConsoleColor::*;
 
 use std::env;
+use std::ffi::OsStr;
 use std::fmt::Display;
 use std::fs;
-use std::fs::{DirEntry, File};
+use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
@@ -210,114 +211,113 @@ fn main() -> io::Result<()> {
     let verbose = env::args().any(|arg| arg == "--verbose" || arg == "-v");
     let test_src_dir: PathBuf = ["test", "test-src", "ok"].iter().collect();
 
-    walk_dir(&test_src_dir, true, |entry| {
-        let path = entry.path();
-        colored_println! {
-            colorize();
-            LightGreen, "Removing ";
-            Reset, "{}", path.display();
-        }
-        fs::remove_file(&path)
-    })?;
-
-    walk_dir(&test_src_dir, false, |entry| {
-        colored_print!{
-            colorize();
-            LightGreen, " Testing ";
-            Reset, "file ";
-            Yellow, "{}", entry.path().display();
-            Reset, " ... ";
-        }
-
-        let ref_compile = reference_compile(&entry.path())?;
-        let ref_assemble = compile_llvm_ir(&ref_compile.ir_path)?;
-        let ref_execute = execute(&ref_assemble.exec_path)?;
-
-        let cur_compile = current_compile(&entry.path())?;
-        let cur_assemble = compile_llvm_ir(&cur_compile.ir_path)?;
-        let cur_execute = execute(&cur_assemble.exec_path)?;
-
-        let ref_res = (&ref_execute.status, &ref_execute.stdout);
-        let cur_res = (&cur_execute.status, &cur_execute.stdout);
-        let status = ref_res == cur_res;
-        let (color, judge) = if status { (Green, "OK") } else { (Red, "NG") };
-
-        colored_println!{
-            colorize();
-            color, "{}", judge;
-        }
-
-        // print info when verbose mode or something fails
-        if verbose || !status {
-            print_heading(LightGreen, "===>", "Reference");
-
-            print_heading(Cyan, "->", "Compilation (C)");
-            if !ref_compile.cc_output.is_empty() {
-                print_stderr(&ref_compile.cc_output);
+    walk_dir(
+        &test_src_dir,
+        |path| path.extension().and_then(OsStr::to_str) != Some("c"),
+        |path| {
+            colored_println! {
+                colorize();
+                LightGreen, "Removing ";
+                Reset, "{}", path.display();
             }
-            print_output(None, &ref_compile.llvm_ir);
+            fs::remove_file(&path)
+        },
+    )?;
 
-            print_heading(Cyan, "->", "Compilation (LLVM IR)");
-            if !ref_assemble.asm_output.is_empty() {
-                print_stderr(&ref_assemble.asm_output);
+    walk_dir(
+        &test_src_dir,
+        |path| path.extension().and_then(OsStr::to_str) == Some("c"),
+        |path| {
+            colored_print!{
+                colorize();
+                LightGreen, " Testing ";
+                Reset, "file ";
+                Yellow, "{}", path.display();
+                Reset, " ... ";
             }
 
-            print_heading(Cyan, "->", "Execution");
-            if !ref_execute.stderr.is_empty() {
-                print_stderr(&ref_execute.stderr);
-            }
-            print_output(ref_execute.status, &ref_execute.stdout);
+            let ref_compile = reference_compile(path)?;
+            let ref_assemble = compile_llvm_ir(&ref_compile.ir_path)?;
+            let ref_execute = execute(&ref_assemble.exec_path)?;
 
-            // -------------------------------------------------------------------------------
+            let cur_compile = current_compile(path)?;
+            let cur_assemble = compile_llvm_ir(&cur_compile.ir_path)?;
+            let cur_execute = execute(&cur_assemble.exec_path)?;
 
-            print_heading(LightGreen, "===>", "Current");
+            let ref_res = (&ref_execute.status, &ref_execute.stdout);
+            let cur_res = (&cur_execute.status, &cur_execute.stdout);
+            let status = ref_res == cur_res;
+            let (color, judge) = if status { (Green, "OK") } else { (Red, "NG") };
 
-            print_heading(Cyan, "->", "Compilation (C)");
-            if !cur_compile.cc_output.is_empty() {
-                print_stderr(&cur_compile.cc_output);
-            }
-            print_output(None, &cur_compile.llvm_ir);
-
-            print_heading(Cyan, "->", "Compilation (LLVM IR)");
-            if !cur_assemble.asm_output.is_empty() {
-                print_stderr(&cur_assemble.asm_output);
+            colored_println!{
+                colorize();
+                color, "{}", judge;
             }
 
-            print_heading(Cyan, "->", "Execution");
-            if !cur_execute.stderr.is_empty() {
-                print_stderr(&cur_execute.stderr);
-            }
-            print_output(cur_execute.status, &cur_execute.stdout);
-        }
+            // print info when verbose mode or something fails
+            if verbose || !status {
+                print_heading(LightGreen, "===>", "Reference");
 
-        Ok(())
-    })
+                print_heading(Cyan, "->", "Compilation (C)");
+                if !ref_compile.cc_output.is_empty() {
+                    print_stderr(&ref_compile.cc_output);
+                }
+                print_output(None, &ref_compile.llvm_ir);
+
+                print_heading(Cyan, "->", "Compilation (LLVM IR)");
+                if !ref_assemble.asm_output.is_empty() {
+                    print_stderr(&ref_assemble.asm_output);
+                }
+
+                print_heading(Cyan, "->", "Execution");
+                if !ref_execute.stderr.is_empty() {
+                    print_stderr(&ref_execute.stderr);
+                }
+                print_output(ref_execute.status, &ref_execute.stdout);
+
+                // -------------------------------------------------------------------------------
+
+                print_heading(LightGreen, "===>", "Current");
+
+                print_heading(Cyan, "->", "Compilation (C)");
+                if !cur_compile.cc_output.is_empty() {
+                    print_stderr(&cur_compile.cc_output);
+                }
+                print_output(None, &cur_compile.llvm_ir);
+
+                print_heading(Cyan, "->", "Compilation (LLVM IR)");
+                if !cur_assemble.asm_output.is_empty() {
+                    print_stderr(&cur_assemble.asm_output);
+                }
+
+                print_heading(Cyan, "->", "Execution");
+                if !cur_execute.stderr.is_empty() {
+                    print_stderr(&cur_execute.stderr);
+                }
+                print_output(cur_execute.status, &cur_execute.stdout);
+            }
+
+            Ok(())
+        },
+    )
 }
 
 fn walk_dir(
     dir: &Path,
-    cleanup_walking: bool,
-    cb: impl Fn(&DirEntry) -> io::Result<()> + Copy,
+    path_filter: impl Fn(&Path) -> bool + Copy,
+    cb: impl Fn(&Path) -> io::Result<()> + Copy,
 ) -> io::Result<()> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
         let path = entry.path();
+        if !path_filter(&path) {
+            continue;
+        }
+
         if path.is_dir() {
-            walk_dir(&path, cleanup_walking, cb)?;
+            walk_dir(&path, path_filter, cb)?;
         } else {
-            let ext = path
-                .extension()
-                .map(|x| {
-                    x.to_str()
-                        .expect("internal error: file name cannot be represented in UTF-8.")
-                })
-                .unwrap_or("");
-            match (cleanup_walking, ext == "c") {
-                (false, true) | (true, false) => {
-                    cb(&entry)?;
-                }
-                _ => {}
-            }
+            cb(&path)?;
         }
     }
 
