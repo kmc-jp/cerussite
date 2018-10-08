@@ -2,6 +2,8 @@ use itertools::Itertools;
 
 use std::iter::Peekable;
 
+use token::Token;
+
 /// split the source code into tokens
 pub struct Lexer<'a> {
     /// entire source code
@@ -43,7 +45,7 @@ fn gen_bid_char_indices<'a>(
 }
 
 impl<'a> Iterator for Lexer<'a> {
-    type Item = &'a str;
+    type Item = Token<'a>;
 
     /// find a next token starting from current position (is it whitespace, skips them and from
     /// a next non-whitespace character).  if entire source code consumed, this returns None.
@@ -62,7 +64,7 @@ impl<'a> Iterator for Lexer<'a> {
         // find longest token
         let last = self
             .chars
-            .peeking_take_while(|&(_, pos, _)| is_valid_token(&source[first..pos]))
+            .peeking_take_while(|&(_, pos, _)| Token::from_str(&source[first..pos]).is_some())
             .fold(first, |_, (_, pos, _)| pos);
 
         if first == last {
@@ -71,39 +73,7 @@ impl<'a> Iterator for Lexer<'a> {
             // that is syntax error, stop lexing.
             None
         } else {
-            Some(&source[first..last])
+            Token::from_str(&source[first..last])
         }
     }
-}
-
-/// check if given `s` is valid token or not.
-/// TODO: under construction. maybe regex is used in the future?
-fn is_valid_token(s: &str) -> bool {
-    eprintln!("checking s: {:?}", s);
-    // is it a number?
-    if let Ok(_) = s.parse::<i32>() {
-        return true;
-    }
-
-    // is it a keyword (or the beginning of keyword)?
-    let keywords = ["int", "main", "void", "return"];
-    if keywords.iter().any(|kw| kw.starts_with(s)) {
-        return true;
-    }
-
-    // is it a symbol?
-    let symbols = ["(", ")", "{", "}", ";"];
-    if symbols.iter().any(|sym| sym.starts_with(s)) {
-        return true;
-    }
-
-    // is it a operator?
-    let operators = ["+", "-", "*", "/"];
-    if operators.iter().any(|op| op.starts_with(s)) {
-        return true;
-    }
-
-    // otherwise, it's not a valid token.
-    eprintln!("  is not a valid token.");
-    false
 }
