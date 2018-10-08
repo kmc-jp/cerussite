@@ -48,12 +48,17 @@ fn generate_code(tokens: &[&str]) -> Result<(), Box<dyn Error>> {
 
 fn handle_operator(tokens: &[&str]) -> Result<(), Box<dyn Error>> {
     assert_eq!(tokens.len(), 3);
-    if tokens[1] != "+" {
-        panic!("operator '{}' is not yet supported.", tokens[1]);
-    }
+    let op_mn = match tokens[1] {
+        "+" => "add",
+        "-" => "sub",
+        "*" => "mul",
+        "/" => "sdiv",
+        op => panic!("operator '{}' is not yet supported.", op),
+    };
+
     println!("  %1 = add i32 {}, 0", tokens[0].parse::<i32>()?);
     println!("  %2 = add i32 {}, 0", tokens[2].parse::<i32>()?);
-    println!("  %3 = add i32 %1, %2");
+    println!("  %3 = {} i32 %1, %2", op_mn);
     println!("  ret i32 %3");
 
     Ok(())
