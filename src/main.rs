@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 mod lexer;
+mod token;
 
 use lexer::Lexer;
 
