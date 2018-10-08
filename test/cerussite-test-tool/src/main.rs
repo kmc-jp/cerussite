@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate colored_print;
+extern crate atty;
 
 use colored_print::color::ConsoleColor;
 use colored_print::color::ConsoleColor::*;
@@ -11,6 +12,13 @@ use std::io;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+
+fn colorize() -> bool {
+    use atty;
+    use atty::Stream;
+
+    atty::is(Stream::Stdout)
+}
 
 fn prefixed_file_name(path: &Path, prefix: &str) -> String {
     let name = path
@@ -170,7 +178,7 @@ fn execute(path: &Path) -> io::Result<ExecutionResult> {
 
 fn print_heading(color: ConsoleColor, symbol: &str, heading: &str) {
     colored_println!{
-        true;
+        colorize();
         color, "{} ", symbol;
         Reset, "{}", heading;
     }
@@ -178,12 +186,12 @@ fn print_heading(color: ConsoleColor, symbol: &str, heading: &str) {
 
 fn print_output(retval: Option<i32>, output: &str) {
     colored_print!{
-        true;
+        colorize();
         Reset, "{}", output;
     }
     if let Some(code) = retval {
         colored_println!{
-            true;
+            colorize();
             LightBlue, "return code";
             Reset, ": {}", code;
         }
@@ -192,7 +200,7 @@ fn print_output(retval: Option<i32>, output: &str) {
 
 fn print_stderr(stderr: impl Display) {
     colored_print!{
-        true;
+        colorize();
         LightMagenta, "{}", stderr;
     }
 }
@@ -203,7 +211,7 @@ fn main() -> io::Result<()> {
     walk_dir(&test_src_dir, true, |entry| {
         let path = entry.path();
         colored_println! {
-            true;
+            colorize();
             LightGreen, "Removing ";
             Reset, "{}", path.display();
         }
@@ -212,7 +220,7 @@ fn main() -> io::Result<()> {
 
     walk_dir(&test_src_dir, false, |entry| {
         colored_print!{
-            true;
+            colorize();
             LightGreen, " Testing ";
             Reset, "file ";
             Yellow, "{}", entry.path().display();
@@ -233,7 +241,7 @@ fn main() -> io::Result<()> {
         let (color, judge) = if status { (Green, "OK") } else { (Red, "NG") };
 
         colored_println!{
-            true;
+            colorize();
             color, "{}", judge;
         }
 

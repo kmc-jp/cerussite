@@ -5,3 +5,4 @@ authors = ["statiolake <statiolake@gmail.com>"]
 
 [dependencies]
 colored_print = { git = "https://github.com/statiolake/colored-print-rs" }
+atty = "0.2.11"
