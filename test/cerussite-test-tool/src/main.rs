@@ -5,6 +5,7 @@ extern crate atty;
 use colored_print::color::ConsoleColor;
 use colored_print::color::ConsoleColor::*;
 
+use std::env;
 use std::fmt::Display;
 use std::fs;
 use std::fs::{DirEntry, File};
@@ -206,6 +207,7 @@ fn print_stderr(stderr: impl Display) {
 }
 
 fn main() -> io::Result<()> {
+    let verbose = env::args().any(|arg| arg == "--verbose" || arg == "-v");
     let test_src_dir: PathBuf = ["test", "test-src", "ok"].iter().collect();
 
     walk_dir(&test_src_dir, true, |entry| {
@@ -245,8 +247,8 @@ fn main() -> io::Result<()> {
             color, "{}", judge;
         }
 
-        // print info only when failure
-        if !status {
+        // print info when verbose mode or something fails
+        if verbose || !status {
             print_heading(LightGreen, "===>", "Reference");
 
             print_heading(Cyan, "->", "Compilation (C)");
