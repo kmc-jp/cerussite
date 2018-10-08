@@ -217,10 +217,12 @@ fn main() -> io::Result<()> {
     })?;
 
     walk_dir(&test_src_dir, false, |entry| {
-        colored_println!{
+        colored_print!{
             true;
-            Reset, "File: ";
-            Yellow, "{}\n", entry.path().display();
+            LightGreen, " Testing ";
+            Reset, "file ";
+            Yellow, "{}", entry.path().display();
+            Reset, " ... ";
         }
 
         let ref_compile = reference_compile(&entry.path())?;
@@ -231,59 +233,57 @@ fn main() -> io::Result<()> {
         let cur_assemble = compile_llvm_ir(&cur_compile.ir_path)?;
         let cur_execute = execute(&cur_assemble.exec_path)?;
 
-        print_heading(LightGreen, "===>", "Reference");
-
-        print_heading(Cyan, "->", "Compilation (C)");
-        if !ref_compile.cc_output.is_empty() {
-            print_stderr(&ref_compile.cc_output);
-        }
-        print_output(None, &ref_compile.llvm_ir);
-
-        print_heading(Cyan, "->", "Compilation (LLVM IR)");
-        if !ref_assemble.asm_output.is_empty() {
-            print_stderr(&ref_assemble.asm_output);
-        }
-
-        print_heading(Cyan, "->", "Execution");
-        if !ref_execute.stderr.is_empty() {
-            print_stderr(&ref_execute.stderr);
-        }
-        print_output(ref_execute.status, &ref_execute.stdout);
-
-        // -------------------------------------------------------------------------------
-
-        print_heading(LightGreen, "===>", "Current");
-
-        print_heading(Cyan, "->", "Compilation (C)");
-        if !cur_compile.cc_output.is_empty() {
-            print_stderr(&cur_compile.cc_output);
-        }
-        print_output(None, &cur_compile.llvm_ir);
-
-        print_heading(Cyan, "->", "Compilation (LLVM IR)");
-        if !cur_assemble.asm_output.is_empty() {
-            print_stderr(&cur_assemble.asm_output);
-        }
-
-        print_heading(Cyan, "->", "Execution");
-        if !cur_execute.stderr.is_empty() {
-            print_stderr(&cur_execute.stderr);
-        }
-        print_output(cur_execute.status, &cur_execute.stdout);
-
-        let (color, judge) = if (ref_execute.status, ref_execute.stdout)
-            == (cur_execute.status, cur_execute.stdout)
-        {
-            (Green, "OK")
-        } else {
-            (Red, "NG")
-        };
+        let ref_res = (&ref_execute.status, &ref_execute.stdout);
+        let cur_res = (&cur_execute.status, &cur_execute.stdout);
+        let status = ref_res == cur_res;
+        let (color, judge) = if status { (Green, "OK") } else { (Red, "NG") };
 
         colored_println!{
             true;
-            LightGreen, "===> ";
-            Reset, "Result Matches? ";
-            color, "{}\n", judge;
+            color, "{}", judge;
+        }
+
+        // print info only when failure
+        if !status {
+            print_heading(LightGreen, "===>", "Reference");
+
+            print_heading(Cyan, "->", "Compilation (C)");
+            if !ref_compile.cc_output.is_empty() {
+                print_stderr(&ref_compile.cc_output);
+            }
+            print_output(None, &ref_compile.llvm_ir);
+
+            print_heading(Cyan, "->", "Compilation (LLVM IR)");
+            if !ref_assemble.asm_output.is_empty() {
+                print_stderr(&ref_assemble.asm_output);
+            }
+
+            print_heading(Cyan, "->", "Execution");
+            if !ref_execute.stderr.is_empty() {
+                print_stderr(&ref_execute.stderr);
+            }
+            print_output(ref_execute.status, &ref_execute.stdout);
+
+            // -------------------------------------------------------------------------------
+
+            print_heading(LightGreen, "===>", "Current");
+
+            print_heading(Cyan, "->", "Compilation (C)");
+            if !cur_compile.cc_output.is_empty() {
+                print_stderr(&cur_compile.cc_output);
+            }
+            print_output(None, &cur_compile.llvm_ir);
+
+            print_heading(Cyan, "->", "Compilation (LLVM IR)");
+            if !cur_assemble.asm_output.is_empty() {
+                print_stderr(&cur_assemble.asm_output);
+            }
+
+            print_heading(Cyan, "->", "Execution");
+            if !cur_execute.stderr.is_empty() {
+                print_stderr(&cur_execute.stderr);
+            }
+            print_output(cur_execute.status, &cur_execute.stdout);
         }
 
         Ok(())
