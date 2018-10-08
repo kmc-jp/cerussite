@@ -191,13 +191,6 @@ fn print_output(retval: Option<i32>, output: &str) {
 }
 
 fn print_stderr(stderr: impl Display) {
-    // indent output
-    let stderr = stderr
-        .to_string()
-        .split('\n')
-        .map(|x| format!("    {}", x))
-        .collect::<Vec<_>>()
-        .join("\n");
     colored_print!{
         true;
         LightMagenta, "{}", stderr;
