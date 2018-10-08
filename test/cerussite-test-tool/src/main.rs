@@ -172,20 +172,20 @@ fn print_heading(color: ConsoleColor, symbol: &str, heading: &str) {
     colored_println!{
         true;
         color, "{} ", symbol;
-        Reset, "{}\n", heading;
+        Reset, "{}", heading;
     }
 }
 
 fn print_output(retval: Option<i32>, output: &str) {
-    colored_println!{
+    colored_print!{
         true;
-        Reset, "{}\n", output;
+        Reset, "{}", output;
     }
     if let Some(code) = retval {
         colored_println!{
             true;
             LightBlue, "return code";
-            Reset, ": {}\n", code;
+            Reset, ": {}", code;
         }
     }
 }
@@ -198,7 +198,7 @@ fn print_stderr(stderr: impl Display) {
         .map(|x| format!("    {}", x))
         .collect::<Vec<_>>()
         .join("\n");
-    colored_println!{
+    colored_print!{
         true;
         LightMagenta, "{}", stderr;
     }
