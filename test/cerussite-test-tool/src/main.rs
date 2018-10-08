@@ -168,20 +168,6 @@ fn execute(path: &Path) -> io::Result<ExecutionResult> {
     })
 }
 
-fn print_stderr(stderr: impl Display) {
-    // indent output
-    let stderr = stderr
-        .to_string()
-        .split('\n')
-        .map(|x| format!("    {}", x))
-        .collect::<Vec<_>>()
-        .join("\n");
-    colored_println!{
-        true;
-        LightMagenta, "{}\n", stderr;
-    }
-}
-
 fn print_heading(color: ConsoleColor, symbol: &str, heading: &str) {
     colored_println!{
         true;
@@ -189,6 +175,7 @@ fn print_heading(color: ConsoleColor, symbol: &str, heading: &str) {
         Reset, "{}\n", heading;
     }
 }
+
 fn print_output(retval: Option<i32>, output: &str) {
     colored_println!{
         true;
@@ -200,6 +187,20 @@ fn print_output(retval: Option<i32>, output: &str) {
             LightBlue, "return code";
             Reset, ": {}\n", code;
         }
+    }
+}
+
+fn print_stderr(stderr: impl Display) {
+    // indent output
+    let stderr = stderr
+        .to_string()
+        .split('\n')
+        .map(|x| format!("    {}", x))
+        .collect::<Vec<_>>()
+        .join("\n");
+    colored_println!{
+        true;
+        LightMagenta, "{}", stderr;
     }
 }
 
