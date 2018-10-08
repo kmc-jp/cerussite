@@ -178,11 +178,10 @@ fn execute(path: &Path) -> io::Result<ExecutionResult> {
     })
 }
 
-fn print_heading(color: ConsoleColor, symbol: &str, heading: &str) {
+fn print_heading(color: ConsoleColor, heading: &str) {
     colored_println!{
         colorize();
-        color, "{} ", symbol;
-        Reset, "{}", heading;
+        color, "{} ", heading;
     }
 }
 
@@ -194,7 +193,7 @@ fn print_output(retval: Option<i32>, output: &str) {
     if let Some(code) = retval {
         colored_println!{
             colorize();
-            LightBlue, "return code";
+            Cyan, "return code";
             Reset, ": {}", code;
         }
     }
@@ -272,41 +271,46 @@ fn main() -> io::Result<()> {
 
         // print info when verbose mode or something fails
         if verbose || !status {
-            print_heading(LightGreen, "===>", "Reference");
+            print_heading(
+                LightGreen,
+                "==================== Reference ====================",
+            );
 
-            print_heading(Cyan, "->", "Compilation (C)");
+            print_heading(LightBlue, "> Compilation (C)");
             if !ref_compile.cc_output.is_empty() {
                 print_stderr(&ref_compile.cc_output);
             }
             print_output(None, &ref_compile.llvm_ir);
 
-            print_heading(Cyan, "->", "Compilation (LLVM IR)");
+            print_heading(LightBlue, "> Compilation (LLVM IR)");
             if !ref_assemble.asm_output.is_empty() {
                 print_stderr(&ref_assemble.asm_output);
             }
 
-            print_heading(Cyan, "->", "Execution");
+            print_heading(LightBlue, "> Execution");
             if !ref_execute.stderr.is_empty() {
                 print_stderr(&ref_execute.stderr);
             }
             print_output(ref_execute.status, &ref_execute.stdout);
 
             // -------------------------------------------------------------------------------
+            print_heading(
+                LightGreen,
+                "==================== Current ====================",
+            );
 
-            print_heading(LightGreen, "===>", "Current");
-
-            print_heading(Cyan, "->", "Compilation (C)");
+            print_heading(LightBlue, "> Compilation (C)");
             if !cur_compile.cc_output.is_empty() {
                 print_stderr(&cur_compile.cc_output);
             }
             print_output(None, &cur_compile.llvm_ir);
 
-            print_heading(Cyan, "->", "Compilation (LLVM IR)");
+            print_heading(LightBlue, "> Compilation (LLVM IR)");
             if !cur_assemble.asm_output.is_empty() {
                 print_stderr(&cur_assemble.asm_output);
             }
 
-            print_heading(Cyan, "->", "Execution");
+            print_heading(LightBlue, "> Execution");
             if !cur_execute.stderr.is_empty() {
                 print_stderr(&cur_execute.stderr);
             }
