@@ -7,6 +7,7 @@ use colored_print::color::ConsoleColor::*;
 
 use std::env;
 use std::ffi::OsStr;
+use std::fmt;
 use std::fmt::Display;
 use std::fs;
 use std::fs::File;
@@ -206,6 +207,81 @@ fn print_stderr(stderr: impl Display) {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+enum Version {
+    Reference,
+    Current,
+}
+
+impl Version {
+    pub fn get_compiler_func(&self) -> fn(path: &Path) -> io::Result<CompilerResult> {
+        match *self {
+            Version::Reference => reference_compile,
+            Version::Current => current_compile,
+        }
+    }
+}
+
+impl fmt::Display for Version {
+    fn fmt(&self, b: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Version::Reference => write!(b, "Reference"),
+            Version::Current => write!(b, " Current "),
+        }
+    }
+}
+
+struct Results {
+    compile: CompilerResult,
+    assemble: AssemblerResult,
+    execute: ExecutionResult,
+}
+
+fn do_for(version: Version, path: &Path) -> io::Result<Results> {
+    let compile = (version.get_compiler_func())(&path)?;
+    let assemble = compile_llvm_ir(&compile.ir_path)?;
+    let execute = execute(&assemble.exec_path)?;
+    Ok(Results {
+        compile,
+        assemble,
+        execute,
+    })
+}
+
+fn judge(refr: &Results, curr: &Results) -> (bool, ConsoleColor, &'static str) {
+    let refr_res = (&refr.execute.status, &refr.execute.stdout);
+    let curr_res = (&curr.execute.status, &curr.execute.stdout);
+    if refr_res == curr_res {
+        (true, Green, "OK")
+    } else {
+        (false, Red, "NG")
+    }
+}
+
+fn print_for(version: Version, results: Results) {
+    print_heading(
+        LightGreen,
+        &format!("==================== {} ====================", version),
+    );
+
+    print_heading(LightBlue, "> Compilation (C)");
+    if !results.compile.cc_output.is_empty() {
+        print_stderr(&results.compile.cc_output);
+    }
+    print_output(None, &results.compile.llvm_ir);
+
+    print_heading(LightBlue, "> Compilation (LLVM IR)");
+    if !results.assemble.asm_output.is_empty() {
+        print_stderr(&results.assemble.asm_output);
+    }
+
+    print_heading(LightBlue, "> Execution");
+    if !results.execute.stderr.is_empty() {
+        print_stderr(&results.execute.stderr);
+    }
+    print_output(results.execute.status, &results.execute.stdout);
+}
+
 fn main() -> io::Result<()> {
     let verbose = env::args().any(|arg| arg == "--verbose" || arg == "-v");
     let test_src_dir: PathBuf = ["test", "test-src", "ok"].iter().collect();
@@ -251,18 +327,10 @@ fn main() -> io::Result<()> {
             continue;
         }
 
-        let ref_compile = reference_compile(&path)?;
-        let ref_assemble = compile_llvm_ir(&ref_compile.ir_path)?;
-        let ref_execute = execute(&ref_assemble.exec_path)?;
+        let refr = do_for(Version::Reference, &path)?;
+        let curr = do_for(Version::Current, &path)?;
 
-        let cur_compile = current_compile(&path)?;
-        let cur_assemble = compile_llvm_ir(&cur_compile.ir_path)?;
-        let cur_execute = execute(&cur_assemble.exec_path)?;
-
-        let ref_res = (&ref_execute.status, &ref_execute.stdout);
-        let cur_res = (&cur_execute.status, &cur_execute.stdout);
-        let status = ref_res == cur_res;
-        let (color, judge) = if status { (Green, "OK") } else { (Red, "NG") };
+        let (status, color, judge) = judge(&refr, &curr);
 
         colored_println!{
             colorize();
@@ -271,50 +339,8 @@ fn main() -> io::Result<()> {
 
         // print info when verbose mode or something fails
         if verbose || !status {
-            print_heading(
-                LightGreen,
-                "==================== Reference ====================",
-            );
-
-            print_heading(LightBlue, "> Compilation (C)");
-            if !ref_compile.cc_output.is_empty() {
-                print_stderr(&ref_compile.cc_output);
-            }
-            print_output(None, &ref_compile.llvm_ir);
-
-            print_heading(LightBlue, "> Compilation (LLVM IR)");
-            if !ref_assemble.asm_output.is_empty() {
-                print_stderr(&ref_assemble.asm_output);
-            }
-
-            print_heading(LightBlue, "> Execution");
-            if !ref_execute.stderr.is_empty() {
-                print_stderr(&ref_execute.stderr);
-            }
-            print_output(ref_execute.status, &ref_execute.stdout);
-
-            // -------------------------------------------------------------------------------
-            print_heading(
-                LightGreen,
-                "==================== Current ====================",
-            );
-
-            print_heading(LightBlue, "> Compilation (C)");
-            if !cur_compile.cc_output.is_empty() {
-                print_stderr(&cur_compile.cc_output);
-            }
-            print_output(None, &cur_compile.llvm_ir);
-
-            print_heading(LightBlue, "> Compilation (LLVM IR)");
-            if !cur_assemble.asm_output.is_empty() {
-                print_stderr(&cur_assemble.asm_output);
-            }
-
-            print_heading(LightBlue, "> Execution");
-            if !cur_execute.stderr.is_empty() {
-                print_stderr(&cur_execute.stderr);
-            }
-            print_output(cur_execute.status, &cur_execute.stdout);
+            print_for(Version::Reference, refr);
+            print_for(Version::Current, curr);
         }
     }
 
