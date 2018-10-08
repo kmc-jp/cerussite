@@ -65,7 +65,14 @@ impl<'a> Iterator for Tokenizer<'a> {
             .peeking_take_while(|&(_, pos, _)| is_valid_token(&source[first..pos]))
             .fold(first, |_, (_, pos, _)| pos);
 
-        Some(&source[first..last])
+        if first == last {
+            // first == last means there are no possible valid token here.
+            // this occurs when unsupported character appeared ('`', '\', '#', etc.)
+            // that is syntax error, stop tokenizing.
+            None
+        } else {
+            Some(&source[first..last])
+        }
     }
 }
 
