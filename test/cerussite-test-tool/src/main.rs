@@ -208,9 +208,10 @@ fn main() -> io::Result<()> {
 
     walk_dir(&test_src_dir, true, |entry| {
         let path = entry.path();
-        colored_println!{
+        colored_println! {
             true;
-            Reset, "Removing {}", path.display();
+            LightGreen, "Removing ";
+            Reset, "{}", path.display();
         }
         fs::remove_file(&path)
     })?;
