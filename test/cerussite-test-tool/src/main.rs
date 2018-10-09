@@ -298,7 +298,7 @@ fn judge(refr: &ExecutionResult, curr: &ExecutionResult) -> (bool, ConsoleColor,
     const OK: (bool, ConsoleColor, &str) = (true, Green, "OK");
     const NG: (bool, ConsoleColor, &str) = (false, Red, "NG");
 
-    use ExecutionResult::{Success, Unreached};
+    use ExecutionResult::Success;
 
     match (refr, curr) {
         (
@@ -319,7 +319,6 @@ fn judge(refr: &ExecutionResult, curr: &ExecutionResult) -> (bool, ConsoleColor,
                 NG
             }
         }
-        (Unreached, Unreached) => OK,
         _ => NG,
     }
 }
