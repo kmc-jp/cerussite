@@ -28,11 +28,33 @@ fn main() -> Result<(), Box<dyn Error>> {
         _ => panic!("compilation error"),
     };
 
-    let num: i32 = tokens[0].trim().parse()?;
-
     println!("define i32 @main() #0 {{");
-    println!("  ret i32 {}", num);
+    generate_code(tokens)?;
     println!("}}");
+
+    Ok(())
+}
+
+fn generate_code(tokens: &[&str]) -> Result<(), Box<dyn Error>> {
+    match tokens.len() {
+        0 => panic!("compilation error"),
+        1 => println!("  ret i32 {}", tokens[0].parse::<i32>()?),
+        3 => handle_operator(tokens)?,
+        _ => panic!("compilation error"),
+    }
+
+    Ok(())
+}
+
+fn handle_operator(tokens: &[&str]) -> Result<(), Box<dyn Error>> {
+    assert_eq!(tokens.len(), 3);
+    if tokens[1] != "+" {
+        panic!("operator '{}' is not yet supported.", tokens[1]);
+    }
+    println!("  %1 = add i32 {}, 0", tokens[0].parse::<i32>()?);
+    println!("  %2 = add i32 {}, 0", tokens[2].parse::<i32>()?);
+    println!("  %3 = add i32 %1, %2");
+    println!("  ret i32 %3");
 
     Ok(())
 }
