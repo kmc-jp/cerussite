@@ -140,6 +140,10 @@ fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblyResult> {
 
     let asm_output = String::from_utf8_lossy(&output.stderr).into_owned();
 
+    if !exec_path.exists() {
+        return Ok(AssemblyResult::Failure { asm_output });
+    }
+
     Ok(AssemblyResult::Success {
         asm_output,
         exec_path,
