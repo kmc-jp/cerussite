@@ -32,10 +32,12 @@ fn prefixed_file_name(path: &Path, prefix: &str) -> String {
     format!("{}{}", prefix, name)
 }
 
-struct CompilerResult {
-    ir_path: PathBuf,
-    llvm_ir: String,
-    cc_output: String,
+enum CompilerResult {
+    Success {
+        ir_path: PathBuf,
+        llvm_ir: String,
+        cc_output: String,
+    },
 }
 
 /// returns the result of compilation with clang (for reference)
@@ -58,7 +60,7 @@ fn reference_compile(src_path: &Path) -> io::Result<CompilerResult> {
     let cc_output = String::from_utf8_lossy(&output.stderr).into_owned();
 
     if !ir_path.exists() {
-        return Ok(CompilerResult {
+        return Ok(CompilerResult::Success {
             ir_path,
             cc_output,
             llvm_ir: String::new(),
@@ -68,7 +70,7 @@ fn reference_compile(src_path: &Path) -> io::Result<CompilerResult> {
     let mut llvm_ir = String::new();
     File::open(&ir_path)?.read_to_string(&mut llvm_ir)?;
 
-    Ok(CompilerResult {
+    Ok(CompilerResult::Success {
         ir_path,
         llvm_ir,
         cc_output,
@@ -93,16 +95,18 @@ fn current_compile(src_path: &Path) -> io::Result<CompilerResult> {
     File::create(&ir_path)?.write_all(&output.stdout)?;
     let llvm_ir = String::from_utf8_lossy(&output.stdout).into_owned();
 
-    Ok(CompilerResult {
+    Ok(CompilerResult::Success {
         ir_path,
         llvm_ir,
         cc_output,
     })
 }
 
-struct AssemblerResult {
-    asm_output: String,
-    exec_path: PathBuf,
+enum AssemblerResult {
+    Success {
+        asm_output: String,
+        exec_path: PathBuf,
+    },
 }
 
 fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblerResult> {
@@ -116,7 +120,7 @@ fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblerResult> {
     };
 
     if !src_path.exists() {
-        return Ok(AssemblerResult {
+        return Ok(AssemblerResult::Success {
             exec_path,
             asm_output: String::new(),
         });
@@ -130,22 +134,24 @@ fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblerResult> {
 
     let asm_output = String::from_utf8_lossy(&output.stderr).into_owned();
 
-    Ok(AssemblerResult {
+    Ok(AssemblerResult::Success {
         asm_output,
         exec_path,
     })
 }
 
-struct ExecutionResult {
-    status: Option<i32>,
-    stdout: String,
-    stderr: String,
+enum ExecutionResult {
+    Success {
+        status: Option<i32>,
+        stdout: String,
+        stderr: String,
+    },
 }
 
 /// returns the execution of the binary placed in the specified path
 fn execute(path: &Path) -> io::Result<ExecutionResult> {
     if !path.exists() {
-        return Ok(ExecutionResult {
+        return Ok(ExecutionResult::Success {
             status: None,
             stdout: String::new(),
             stderr: String::new(),
@@ -172,7 +178,7 @@ fn execute(path: &Path) -> io::Result<ExecutionResult> {
     child_stderr.read_to_string(&mut stderr)?;
     let status = status.code();
 
-    Ok(ExecutionResult {
+    Ok(ExecutionResult::Success {
         status,
         stdout,
         stderr,
@@ -238,19 +244,37 @@ struct Results {
 }
 
 fn do_for(version: Version, path: &Path) -> io::Result<Results> {
-    let compile = (version.get_compiler_func())(&path)?;
-    let assemble = compile_llvm_ir(&compile.ir_path)?;
-    let execute = execute(&assemble.exec_path)?;
+    let (res_compile, res_assemble, res_execute);
+
+    // explicitly denote borrowing region
+    {
+        res_compile = (version.get_compiler_func())(&path)?;
+        let CompilerResult::Success { ref ir_path, .. } = res_compile;
+        res_assemble = compile_llvm_ir(ir_path)?;
+        let AssemblerResult::Success { ref exec_path, .. } = res_assemble;
+        res_execute = execute(exec_path)?;
+    }
+
     Ok(Results {
-        compile,
-        assemble,
-        execute,
+        compile: res_compile,
+        assemble: res_assemble,
+        execute: res_execute,
     })
 }
 
 fn judge(refr: &Results, curr: &Results) -> (bool, ConsoleColor, &'static str) {
-    let refr_res = (&refr.execute.status, &refr.execute.stdout);
-    let curr_res = (&curr.execute.status, &curr.execute.stdout);
+    let ExecutionResult::Success {
+        status: ref refr_status,
+        stdout: ref refr_stdout,
+        ..
+    } = refr.execute;
+    let ExecutionResult::Success {
+        status: ref curr_status,
+        stdout: ref curr_stdout,
+        ..
+    } = curr.execute;
+    let refr_res = (refr_status, refr_stdout);
+    let curr_res = (curr_status, curr_stdout);
     if refr_res == curr_res {
         (true, Green, "OK")
     } else {
@@ -265,21 +289,30 @@ fn print_for(version: Version, results: Results) {
     );
 
     print_heading(LightBlue, "> Compilation (C)");
-    if !results.compile.cc_output.is_empty() {
-        print_stderr(&results.compile.cc_output);
+    let CompilerResult::Success {
+        cc_output, llvm_ir, ..
+    } = results.compile;
+    if !cc_output.is_empty() {
+        print_stderr(&cc_output);
     }
-    print_output(None, &results.compile.llvm_ir);
+    print_output(None, &llvm_ir);
 
     print_heading(LightBlue, "> Compilation (LLVM IR)");
-    if !results.assemble.asm_output.is_empty() {
-        print_stderr(&results.assemble.asm_output);
+    let AssemblerResult::Success { asm_output, .. } = results.assemble;
+    if !asm_output.is_empty() {
+        print_stderr(&asm_output);
     }
 
     print_heading(LightBlue, "> Execution");
-    if !results.execute.stderr.is_empty() {
-        print_stderr(&results.execute.stderr);
+    let ExecutionResult::Success {
+        status,
+        stdout,
+        stderr,
+    } = results.execute;
+    if !stderr.is_empty() {
+        print_stderr(&stderr);
     }
-    print_output(results.execute.status, &results.execute.stdout);
+    print_output(status, &stdout);
 }
 
 fn main() -> io::Result<()> {
