@@ -5,9 +5,10 @@ use std::process::Command;
 
 fn main() -> io::Result<()> {
     let root = find_project_root()?;
-    eprintln!("found project root at {}", root.display());
+    eprintln!("> found project root at {}", root.display());
 
     // build test tool
+    eprintln!("> building test tool");
     Command::new("cargo")
         .arg("build")
         .arg("--release")
@@ -21,6 +22,7 @@ fn main() -> io::Result<()> {
     assert_eq!(args.next(), Some("test-cerussite".into()));
 
     // run test tool
+    eprintln!("> running test");
     Command::new(root.join("test/cerussite-test-tool/target/release/cerussite-test-tool"))
         .args(args)
         .current_dir(root)
