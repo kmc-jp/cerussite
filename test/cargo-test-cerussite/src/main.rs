@@ -16,13 +16,13 @@ fn main() -> io::Result<()> {
         .spawn()?
         .wait()?;
 
+    // run test tool
+    eprintln!("> running test");
     let mut args = env::args();
 
     assert_eq!(args.next().map(|x| x.contains("cargo")), Some(true));
     assert_eq!(args.next(), Some("test-cerussite".into()));
 
-    // run test tool
-    eprintln!("> running test");
     Command::new(root.join("test/cerussite-test-tool/target/release/cerussite-test-tool"))
         .args(args)
         .current_dir(root)
