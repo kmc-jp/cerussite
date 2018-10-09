@@ -98,7 +98,7 @@ fn is_valid_token(s: &str) -> bool {
     }
 
     // is it a operator?
-    let operators = ["+"];
+    let operators = ["+", "-", "*", "/"];
     if operators.iter().any(|op| op.starts_with(s)) {
         return true;
     }
