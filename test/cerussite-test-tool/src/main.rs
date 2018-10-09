@@ -63,11 +63,7 @@ fn reference_compile(src_path: &Path) -> io::Result<CompilationResult> {
     let cc_output = String::from_utf8_lossy(&output.stderr).into_owned();
 
     if !ir_path.exists() {
-        return Ok(CompilationResult::Success {
-            ir_path,
-            cc_output,
-            llvm_ir: String::new(),
-        });
+        return Ok(CompilationResult::Failure { cc_output });
     }
 
     let mut llvm_ir = String::new();
@@ -95,6 +91,12 @@ fn current_compile(src_path: &Path) -> io::Result<CompilationResult> {
         .output()?;
 
     let cc_output = String::from_utf8_lossy(&output.stderr).into_owned();
+
+    if output.stdout.is_empty() {
+        // compilation failed.
+        return Ok(CompilationResult::Failure { cc_output });
+    }
+
     File::create(&ir_path)?.write_all(&output.stdout)?;
     let llvm_ir = String::from_utf8_lossy(&output.stdout).into_owned();
 
@@ -127,10 +129,7 @@ fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblyResult> {
     };
 
     if !src_path.exists() {
-        return Ok(AssemblyResult::Success {
-            exec_path,
-            asm_output: String::new(),
-        });
+        panic!("internal error: compilation has succeeded but no LLVM IR?");
     }
 
     let output = Command::new("clang")
