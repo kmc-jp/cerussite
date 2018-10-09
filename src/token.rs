@@ -53,7 +53,7 @@ define_tokens! {
     literal SySemicolon: ";";
 
     regex (RE_IDENT) Ident: "^[a-zA-Z_][a-zA-Z0-9_]*$";
-    regex (RE_LITERAL) Literal : "^[0-9]+$";
+    regex (RE_LITERAL) Literal: "^[0-9]+$";
 }
 
 impl<'a> Token<'a> {
