@@ -38,6 +38,9 @@ enum CompilationResult {
         llvm_ir: String,
         cc_output: String,
     },
+    Failure {
+        cc_output: String,
+    },
 }
 
 /// returns the result of compilation with clang (for reference)
@@ -107,6 +110,10 @@ enum AssemblyResult {
         asm_output: String,
         exec_path: PathBuf,
     },
+    Failure {
+        asm_output: String,
+    },
+    Unreached,
 }
 
 fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblyResult> {
@@ -146,6 +153,7 @@ enum ExecutionResult {
         stdout: String,
         stderr: String,
     },
+    Unreached,
 }
 
 /// returns the execution of the binary placed in the specified path
@@ -249,10 +257,31 @@ fn do_for(version: Version, path: &Path) -> io::Result<Results> {
     // explicitly denote borrowing region
     {
         compilation = (version.get_compiler_func())(&path)?;
-        let CompilationResult::Success { ref ir_path, .. } = compilation;
-        assembly = compile_llvm_ir(ir_path)?;
-        let AssemblyResult::Success { ref exec_path, .. } = assembly;
-        execution = execute(exec_path)?;
+        let ir_path = match compilation {
+            failure @ CompilationResult::Failure { .. } => {
+                return Ok(Results {
+                    compilation: failure,
+                    assembly: AssemblyResult::Unreached,
+                    execution: ExecutionResult::Unreached,
+                })
+            }
+            CompilationResult::Success { ref ir_path, .. } => ir_path.clone(),
+        };
+
+        assembly = compile_llvm_ir(&ir_path)?;
+        let exec_path = match assembly {
+            failure @ AssemblyResult::Failure { .. } => {
+                return Ok(Results {
+                    compilation: compilation,
+                    assembly: failure,
+                    execution: ExecutionResult::Unreached,
+                })
+            }
+            AssemblyResult::Success { ref exec_path, .. } => exec_path.clone(),
+            AssemblyResult::Unreached => unreachable!(),
+        };
+
+        execution = execute(&exec_path)?;
     }
 
     Ok(Results {
@@ -262,23 +291,33 @@ fn do_for(version: Version, path: &Path) -> io::Result<Results> {
     })
 }
 
-fn judge(refr: &Results, curr: &Results) -> (bool, ConsoleColor, &'static str) {
-    let ExecutionResult::Success {
-        status: ref refr_status,
-        stdout: ref refr_stdout,
-        ..
-    } = refr.execution;
-    let ExecutionResult::Success {
-        status: ref curr_status,
-        stdout: ref curr_stdout,
-        ..
-    } = curr.execution;
-    let refr_res = (refr_status, refr_stdout);
-    let curr_res = (curr_status, curr_stdout);
-    if refr_res == curr_res {
-        (true, Green, "OK")
-    } else {
-        (false, Red, "NG")
+fn judge(refr: &ExecutionResult, curr: &ExecutionResult) -> (bool, ConsoleColor, &'static str) {
+    const OK: (bool, ConsoleColor, &str) = (true, Green, "OK");
+    const NG: (bool, ConsoleColor, &str) = (false, Red, "NG");
+
+    use ExecutionResult::{Success, Unreached};
+
+    match (refr, curr) {
+        (
+            Success {
+                status: ref refr_status,
+                stdout: ref refr_stdout,
+                ..
+            },
+            Success {
+                status: ref curr_status,
+                stdout: ref curr_stdout,
+                ..
+            },
+        ) => {
+            if (refr_status, refr_stdout) == (curr_status, curr_stdout) {
+                OK
+            } else {
+                NG
+            }
+        }
+        (Unreached, Unreached) => OK,
+        _ => NG,
     }
 }
 
@@ -288,31 +327,46 @@ fn print_for(version: Version, results: Results) {
         &format!("==================== {} ====================", version),
     );
 
+    use {AssemblyResult as AR, CompilationResult as CR, ExecutionResult as ER};
+
     print_heading(LightBlue, "> Compilation (C)");
-    let CompilationResult::Success {
-        cc_output, llvm_ir, ..
-    } = results.compilation;
-    if !cc_output.is_empty() {
-        print_stderr(&cc_output);
+    match results.compilation {
+        CR::Success {
+            cc_output, llvm_ir, ..
+        } => {
+            print_stderr(&cc_output);
+            print_output(None, &llvm_ir);
+        }
+        CR::Failure { cc_output, .. } => {
+            print_stderr(&cc_output);
+            return;
+        }
     }
-    print_output(None, &llvm_ir);
 
     print_heading(LightBlue, "> Compilation (LLVM IR)");
-    let AssemblyResult::Success { asm_output, .. } = results.assembly;
-    if !asm_output.is_empty() {
-        print_stderr(&asm_output);
+    match results.assembly {
+        AR::Success { asm_output, .. } => {
+            print_stderr(&asm_output);
+        }
+        AR::Failure { asm_output, .. } => {
+            print_stderr(&asm_output);
+            return;
+        }
+        AR::Unreached => unreachable!(),
     }
 
     print_heading(LightBlue, "> Execution");
-    let ExecutionResult::Success {
-        status,
-        stdout,
-        stderr,
-    } = results.execution;
-    if !stderr.is_empty() {
-        print_stderr(&stderr);
+    match results.execution {
+        ER::Success {
+            status,
+            stdout,
+            stderr,
+        } => {
+            print_stderr(&stderr);
+            print_output(status, &stdout);
+        }
+        ER::Unreached => unreachable!(),
     }
-    print_output(status, &stdout);
 }
 
 fn main() -> io::Result<()> {
@@ -363,7 +417,7 @@ fn main() -> io::Result<()> {
         let refr = do_for(Version::Reference, &path)?;
         let curr = do_for(Version::Current, &path)?;
 
-        let (status, color, judge) = judge(&refr, &curr);
+        let (status, color, judge) = judge(&refr.execution, &curr.execution);
 
         colored_println!{
             colorize();
