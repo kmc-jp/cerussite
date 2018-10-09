@@ -16,6 +16,14 @@ fn main() -> io::Result<()> {
         .spawn()?
         .wait()?;
 
+    // build cerussite
+    eprintln!("> building cerussite");
+    Command::new("cargo")
+        .arg("build")
+        .current_dir(&root)
+        .spawn()?
+        .wait()?;
+
     // run test tool
     eprintln!("> running test");
     let mut args = env::args();
