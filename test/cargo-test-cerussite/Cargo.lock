@@ -1,4 +1,4 @@
 [[package]]
-name = "cargo-run-test"
+name = "cargo-test-cerussite"
 version = "0.1.0"
 
