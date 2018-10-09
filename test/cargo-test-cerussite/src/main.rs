@@ -9,20 +9,32 @@ fn main() -> io::Result<()> {
 
     // build test tool
     eprintln!("> building test tool");
-    Command::new("cargo")
+    let res = Command::new("cargo")
         .arg("build")
         .arg("--release")
         .current_dir(root.join("test/cerussite-test-tool"))
         .spawn()?
         .wait()?;
+    if !res.success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            "building test tool failed.",
+        ));
+    }
 
     // build cerussite
     eprintln!("> building cerussite");
-    Command::new("cargo")
+    let res = Command::new("cargo")
         .arg("build")
         .current_dir(&root)
         .spawn()?
         .wait()?;
+    if !res.success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            "building cerussite failed.",
+        ));
+    }
 
     // run test tool
     eprintln!("> running test");
@@ -31,11 +43,18 @@ fn main() -> io::Result<()> {
     assert_eq!(args.next().map(|x| x.contains("cargo")), Some(true));
     assert_eq!(args.next(), Some("test-cerussite".into()));
 
-    Command::new(root.join("test/cerussite-test-tool/target/release/cerussite-test-tool"))
-        .args(args)
-        .current_dir(root)
-        .spawn()?
-        .wait()?;
+    let res =
+        Command::new(root.join("test/cerussite-test-tool/target/release/cerussite-test-tool"))
+            .args(args)
+            .current_dir(root)
+            .spawn()?
+            .wait()?;
+    if !res.success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            "runnning test failed.",
+        ));
+    }
 
     Ok(())
 }
