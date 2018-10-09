@@ -1,3 +1,4 @@
+/test/cargo-test-cerussite/target
 /test/cerussite-test-tool/target
 /test/test-src/ok/*
 /test/test-src/ng/*
