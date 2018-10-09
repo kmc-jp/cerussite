@@ -1,68 +1,59 @@
 use regex::Regex;
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum Token<'a> {
-    TyInt,
-    TyVoid,
+macro_rules! define_tokens {
+    ($(literal $lname:ident: $lmatcher:expr;)* $(regex ($rregex_name:ident) $rname:ident: $rmatcher:expr;)*) => {
+        #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+        pub enum Token<'a> {
+            $($lname,)*
+            $($rname(&'a str),)*
+        }
 
-    KwReturn,
+        impl<'a> Token<'a> {
+            pub fn from_str(token_str: &'a str) -> Option<Token<'a>> {
+                match token_str {
+                    $(
+                        $lmatcher => return Some(Token::$lname),
+                    )*
+                    _ => {},
+                }
 
-    OpAdd,
-    OpSub,
-    OpMul,
-    OpDiv,
+                $(
+                    if $rregex_name.is_match(token_str) {
+                        return Some(Token::$rname(token_str));
+                    }
+                )*
 
-    SyLPar,
-    SyRPar,
-    SyLBrace,
-    SyRBrace,
-    SySemicolon,
+                None
+            }
+        }
 
-    Ident(&'a str),
-    Literal(&'a str),
+        lazy_static! {
+            $(
+                static ref $rregex_name: Regex = Regex::new($rmatcher).unwrap();
+            )*
+        }
+    };
 }
 
-lazy_static! {
-    static ref RE_IDENT: Regex = Regex::new("^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
-    static ref RE_LITERAL: Regex = Regex::new("^[0-9]+$").unwrap();
-}
+define_tokens! {
+    literal TyInt: "int";
+    literal TyVoid: "void";
 
-impl<'a> Token<'a> {
-    pub fn from_str(token_str: &'a str) -> Option<Token<'a>> {
-        let maybe_token = match token_str {
-            "int" => Some(Token::TyInt),
-            "void" => Some(Token::TyVoid),
+    literal KwReturn: "return";
 
-            "return" => Some(Token::KwReturn),
+    literal OpAdd: "+";
+    literal OpSub: "-";
+    literal OpMul: "*";
+    literal OpDiv: "/";
 
-            "+" => Some(Token::OpAdd),
-            "-" => Some(Token::OpSub),
-            "*" => Some(Token::OpMul),
-            "/" => Some(Token::OpDiv),
+    literal SyLPar: "(";
+    literal SyRPar: ")";
+    literal SyLBrace: "{";
+    literal SyRBrace: "}";
+    literal SySemicolon: ";";
 
-            "(" => Some(Token::SyLPar),
-            ")" => Some(Token::SyRPar),
-            "{" => Some(Token::SyLBrace),
-            "}" => Some(Token::SyRBrace),
-            ";" => Some(Token::SySemicolon),
-
-            _ => None,
-        };
-
-        if maybe_token.is_some() {
-            return maybe_token;
-        }
-
-        if RE_IDENT.is_match(token_str) {
-            return Some(Token::Ident(token_str));
-        }
-
-        if RE_LITERAL.is_match(token_str) {
-            return Some(Token::Literal(token_str));
-        }
-
-        None
-    }
+    regex (RE_IDENT) Ident: "^[a-zA-Z_][a-zA-Z0-9_]*$";
+    regex (RE_LITERAL) Literal : "^[0-9]+$";
 }
 
 impl<'a> Token<'a> {
