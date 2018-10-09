@@ -32,7 +32,7 @@ fn prefixed_file_name(path: &Path, prefix: &str) -> String {
     format!("{}{}", prefix, name)
 }
 
-enum CompilerResult {
+enum CompilationResult {
     Success {
         ir_path: PathBuf,
         llvm_ir: String,
@@ -41,7 +41,7 @@ enum CompilerResult {
 }
 
 /// returns the result of compilation with clang (for reference)
-fn reference_compile(src_path: &Path) -> io::Result<CompilerResult> {
+fn reference_compile(src_path: &Path) -> io::Result<CompilationResult> {
     let ir_path = {
         let output_name = prefixed_file_name(&src_path, "ref_");
         src_path.with_file_name(output_name).with_extension("ll")
@@ -60,7 +60,7 @@ fn reference_compile(src_path: &Path) -> io::Result<CompilerResult> {
     let cc_output = String::from_utf8_lossy(&output.stderr).into_owned();
 
     if !ir_path.exists() {
-        return Ok(CompilerResult::Success {
+        return Ok(CompilationResult::Success {
             ir_path,
             cc_output,
             llvm_ir: String::new(),
@@ -70,7 +70,7 @@ fn reference_compile(src_path: &Path) -> io::Result<CompilerResult> {
     let mut llvm_ir = String::new();
     File::open(&ir_path)?.read_to_string(&mut llvm_ir)?;
 
-    Ok(CompilerResult::Success {
+    Ok(CompilationResult::Success {
         ir_path,
         llvm_ir,
         cc_output,
@@ -78,7 +78,7 @@ fn reference_compile(src_path: &Path) -> io::Result<CompilerResult> {
 }
 
 /// returns the llvm_ir of compilation with our current compiler
-fn current_compile(src_path: &Path) -> io::Result<CompilerResult> {
+fn current_compile(src_path: &Path) -> io::Result<CompilationResult> {
     let ir_path = {
         let output_name = prefixed_file_name(&src_path, "cur_");
         src_path.with_file_name(output_name).with_extension("ll")
@@ -95,21 +95,21 @@ fn current_compile(src_path: &Path) -> io::Result<CompilerResult> {
     File::create(&ir_path)?.write_all(&output.stdout)?;
     let llvm_ir = String::from_utf8_lossy(&output.stdout).into_owned();
 
-    Ok(CompilerResult::Success {
+    Ok(CompilationResult::Success {
         ir_path,
         llvm_ir,
         cc_output,
     })
 }
 
-enum AssemblerResult {
+enum AssemblyResult {
     Success {
         asm_output: String,
         exec_path: PathBuf,
     },
 }
 
-fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblerResult> {
+fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblyResult> {
     let exec_path = if cfg!(windows) {
         src_path.with_extension("exe")
     } else {
@@ -120,7 +120,7 @@ fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblerResult> {
     };
 
     if !src_path.exists() {
-        return Ok(AssemblerResult::Success {
+        return Ok(AssemblyResult::Success {
             exec_path,
             asm_output: String::new(),
         });
@@ -134,7 +134,7 @@ fn compile_llvm_ir(src_path: &Path) -> io::Result<AssemblerResult> {
 
     let asm_output = String::from_utf8_lossy(&output.stderr).into_owned();
 
-    Ok(AssemblerResult::Success {
+    Ok(AssemblyResult::Success {
         asm_output,
         exec_path,
     })
@@ -220,7 +220,7 @@ enum Version {
 }
 
 impl Version {
-    pub fn get_compiler_func(&self) -> fn(path: &Path) -> io::Result<CompilerResult> {
+    pub fn get_compiler_func(&self) -> fn(path: &Path) -> io::Result<CompilationResult> {
         match *self {
             Version::Reference => reference_compile,
             Version::Current => current_compile,
@@ -238,27 +238,27 @@ impl fmt::Display for Version {
 }
 
 struct Results {
-    compile: CompilerResult,
-    assemble: AssemblerResult,
-    execute: ExecutionResult,
+    compilation: CompilationResult,
+    assembly: AssemblyResult,
+    execution: ExecutionResult,
 }
 
 fn do_for(version: Version, path: &Path) -> io::Result<Results> {
-    let (res_compile, res_assemble, res_execute);
+    let (compilation, assembly, execution);
 
     // explicitly denote borrowing region
     {
-        res_compile = (version.get_compiler_func())(&path)?;
-        let CompilerResult::Success { ref ir_path, .. } = res_compile;
-        res_assemble = compile_llvm_ir(ir_path)?;
-        let AssemblerResult::Success { ref exec_path, .. } = res_assemble;
-        res_execute = execute(exec_path)?;
+        compilation = (version.get_compiler_func())(&path)?;
+        let CompilationResult::Success { ref ir_path, .. } = compilation;
+        assembly = compile_llvm_ir(ir_path)?;
+        let AssemblyResult::Success { ref exec_path, .. } = assembly;
+        execution = execute(exec_path)?;
     }
 
     Ok(Results {
-        compile: res_compile,
-        assemble: res_assemble,
-        execute: res_execute,
+        compilation,
+        assembly,
+        execution,
     })
 }
 
@@ -267,12 +267,12 @@ fn judge(refr: &Results, curr: &Results) -> (bool, ConsoleColor, &'static str) {
         status: ref refr_status,
         stdout: ref refr_stdout,
         ..
-    } = refr.execute;
+    } = refr.execution;
     let ExecutionResult::Success {
         status: ref curr_status,
         stdout: ref curr_stdout,
         ..
-    } = curr.execute;
+    } = curr.execution;
     let refr_res = (refr_status, refr_stdout);
     let curr_res = (curr_status, curr_stdout);
     if refr_res == curr_res {
@@ -289,16 +289,16 @@ fn print_for(version: Version, results: Results) {
     );
 
     print_heading(LightBlue, "> Compilation (C)");
-    let CompilerResult::Success {
+    let CompilationResult::Success {
         cc_output, llvm_ir, ..
-    } = results.compile;
+    } = results.compilation;
     if !cc_output.is_empty() {
         print_stderr(&cc_output);
     }
     print_output(None, &llvm_ir);
 
     print_heading(LightBlue, "> Compilation (LLVM IR)");
-    let AssemblerResult::Success { asm_output, .. } = results.assemble;
+    let AssemblyResult::Success { asm_output, .. } = results.assembly;
     if !asm_output.is_empty() {
         print_stderr(&asm_output);
     }
@@ -308,7 +308,7 @@ fn print_for(version: Version, results: Results) {
         status,
         stdout,
         stderr,
-    } = results.execute;
+    } = results.execution;
     if !stderr.is_empty() {
         print_stderr(&stderr);
     }
