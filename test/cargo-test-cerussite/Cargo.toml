@@ -1,0 +1,6 @@
+[package]
+name = "cargo-test-cerussite"
+version = "0.1.0"
+authors = ["statiolake <statiolake@gmail.com>"]
+
+[dependencies]
