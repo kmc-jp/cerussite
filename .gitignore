@@ -1,6 +1,5 @@
 /cargo-test-cerussite/target
 /cerussite-test-tool/target
-/test/cargo-run-test/target
 /test/ok/*
 /test/ng/*
 !/test/ok/*.c
