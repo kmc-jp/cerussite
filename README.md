@@ -1,6 +1,10 @@
-# テストツール
+# cerussite --- C compiler written in Rust.
 
-## すること
+Rust で C コンパイラを作ろうという試みです。
+
+## テストツール --- `cerussite-test-tool`
+
+### すること
 
 * `test/test-src/ok` の中にある `*.c` ファイルを再帰的にテストします。
     * この過程で `*.c` 意外の名前のファイルは **削除される** ので注意が必要です。
@@ -12,7 +16,7 @@
     * これは **両者ともにコンパイルエラー** という場合も **OK** と判定されるので、注意が必要です。
 
 
-## 使い方
+### 使い方
 
 1. `cargo build` するか、 `cargo build --release` します。
     * バイナリを `~/.cargo/bin` に入れてよければ `cargo install --path .` としてもよいです。
@@ -22,14 +26,14 @@
     * `--release` でコンパイルした場合は `test/cerussite-test-tool/target/release/cerussite-test-tool` とします。
     * `install` した場合は、きちんと `~/.cargo/bin` にパスが通っていれば `cerussite-test-tool` だけで OK です。
 
-## コマンドラインオプション
+### コマンドラインオプション
 
 * -v, --verbose: cerussite と clang で結果が一致した場合も、アウトプットや LLVM IR などを出力します。
 * (`test/test-src/ok` にあるファイル名) テストするファイルを指定できます。
     * 複数指定も可能です。
     * `test/test-src/ok` からの相対パスで指定すれば、 `..` などを活用して表現できるパスであれば、おそらく任意のファイルがテストできます。
 
-## 例
+### 例
 
 * 全部のファイルをテストする。
     ```
