@@ -14,16 +14,16 @@ Rust で C コンパイラを作ろうという試みです。
 
 現在は、外側の `int main (void) { return (...) ; }` を完全に無視し、 `return` 内部の式を解釈する作業を進めています。
 
-* fee5bf778c103d9afd8a87afce050821d0b0be70 最小限の C プログラム
+* [`fee5bf7`](https://github.com/kmc-jp/cerussite/commit/fee5bf778c103d9afd8a87afce050821d0b0be70) 最小限の C プログラム
     ```c
     int main(void) {
         return 42;
     }
     ```
 * 数式
-    * 0ef23d3c76e86f9e161912da5d77c4a8e7a10864 `0` や `42` のような即値
-    * 5824ec0852128ac87f94e15f0ca6a4ba0c8adee0 `+` による即値同士の演算
-    * ba67f4e5504024312895a71a2404c7d0a454ab5b `-`, `*`, `/` による即値同士の演算
+    * [`0ef23d3`](https://github.com/kmc-jp/cerussite/commit/0ef23d3c76e86f9e161912da5d77c4a8e7a10864) `0` や `42` のような即値
+    * [`5824ec0`](https://github.com/kmc-jp/cerussite/commit/5824ec0852128ac87f94e15f0ca6a4ba0c8adee0) `+` による即値同士の演算
+    * [`ba67f4e`](https://github.com/kmc-jp/cerussite/commit/ba67f4e5504024312895a71a2404c7d0a454ab5b) `-`, `*`, `/` による即値同士の演算
 
 ## テストランチャー --- `cargo-test-cerussite`
 
