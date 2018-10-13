@@ -95,21 +95,21 @@ Rust で C コンパイラを作ろうという試みです。
 ### 例
 
 * 全部のファイルをテストする。
-    ```
-    % cerussite-test-tool
+    ```console
+    $ cerussite-test-tool
     ```
 * 全部のファイルをテストする。成否に関わらず、コンパイラ出力や LLVM IR と実行結果を出力する。
-    ```
-    % cerussite-test-tool -v
+    ```console
+    $ cerussite-test-tool -v
     ```
 * `test/ok` 内の `test01.c` をテストする。
-    ```
-    % cerussite-test-tool test01.c
+    ```console
+    $ cerussite-test-tool test01.c
     ```
 * `test/ok` 内の `test01.c`, `test02.c` をテストする。冗長出力もする。
-    ```
-    % cerussite-test-tool -v test01.c test02.c
+    ```console
+    $ cerussite-test-tool -v test01.c test02.c
     または
-    % cerussite-test-tool test01.c -v test02.c
+    $ cerussite-test-tool test01.c -v test02.c
     または (以下略。 -v はどこにあってもよい)
     ```
