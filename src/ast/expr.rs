@@ -95,7 +95,8 @@ impl Multiplicative {
 
 impl Unary {
     pub fn parse<'a>(tokens: Tokens<'a>) -> (Unary, Tokens<'a>) {
-        unimplemented!();
+        let (primary, tokens) = Primary::parse(tokens);
+        (Unary::Primary(Box::new(primary)), tokens)
     }
 }
 
