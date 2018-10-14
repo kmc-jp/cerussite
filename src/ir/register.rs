@@ -53,10 +53,15 @@ impl PartialEq for Register {
     }
 }
 impl Eq for Register {}
+impl Register {
+    fn new(gen: &mut IdentityGenerator) -> Register {
+        Register(gen.generate())
+    }
+}
 #[test]
 fn test_register() {
     let mut a = IdentityGenerator::new();
-    let b = Register(a.generate());
-    let c = Register(a.generate());
+    let b = Register::new(&mut a);
+    let c = Register::new(&mut a);
     assert!(b != c);
 }
