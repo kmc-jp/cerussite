@@ -1,10 +1,4 @@
 struct Identity(i32);
-impl Clone for Identity {
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-impl Copy for Identity {}
 impl PartialEq for Identity {
     fn eq(&self, other: &Identity) -> bool {
         self.0 == other.0
@@ -21,11 +15,10 @@ impl Identity {
 #[test]
 fn test_identity() {
     let a = Identity(0);
-    let b = a;
-    let mut c = b;
-    c.next();
-    assert!(a == b);
-    assert!(a != c);
+    let mut b = Identity(0);
+    let c = b.next();
+    assert!(a != b);
+    assert!(a == c);
 }
 
 struct IdentityGenerator(Identity);
