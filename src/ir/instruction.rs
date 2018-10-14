@@ -17,15 +17,16 @@ enum Instruction<'a> {
     Ret(Value<'a>),
     Add(Register, Value<'a>, Value<'a>),
 }
+fn make_ret_instruction(val: Value) -> Instruction {
+    Instruction::Ret(val)
+}
 #[test]
 fn test_instruction() {
     let mut gen = IdentityGenerator::new();
-    let reg1 = Register::new(&mut gen);
-    let reg2 = Register::new(&mut gen);
-    let reg3 = Register::new(&mut gen);
-    let val1 = Value::Register(&reg1);
-    let val2 = Value::Register(&reg2);
-    let val3 = Value::Constant(0);
-    let _ret = Instruction::Ret(val1);
-    let _add = Instruction::Add(reg3, val2, val3);
+    let reg = Register::new(&mut gen);
+    let val1 = Value::Constant(1);
+    let val2 = Value::Constant(2);
+    let val3 = Value::Constant(3);
+    let _add = Instruction::Add(reg, val1, val2);
+    let _ret = make_ret_instruction(val3);
 }
