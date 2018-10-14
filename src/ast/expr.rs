@@ -128,3 +128,44 @@ impl Primary {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Expr;
+    use token::Token;
+
+    #[test]
+    fn it_works() {
+        println!("{:?}", Expr::parse(&[Token::Literal("42")]));
+        println!(
+            "{:?}",
+            Expr::parse(&[Token::Literal("40"), Token::OpAdd, Token::Literal("2")])
+        );
+        println!(
+            "{:?}",
+            Expr::parse(&[
+                Token::Literal("42"),
+                Token::OpAdd,
+                Token::Literal("3"),
+                Token::OpMul,
+                Token::Literal("7")
+            ])
+        );
+        println!(
+            "{:?}",
+            Expr::parse(&[
+                Token::Literal("42"),
+                Token::OpAdd,
+                Token::SyLPar,
+                Token::Literal("30"),
+                Token::OpSub,
+                Token::SyLPar,
+                Token::Literal("30"),
+                Token::OpSub,
+                Token::Literal("15"),
+                Token::SyRPar,
+                Token::SyRPar
+            ])
+        );
+    }
+}
