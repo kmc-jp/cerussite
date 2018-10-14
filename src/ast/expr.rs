@@ -20,6 +20,8 @@ pub enum Multiplicative {
 #[derive(Debug)]
 pub enum Unary {
     Primary(Box<Primary>),
+    UnaryPlus(Box<Unary>),
+    UnaryMinus(Box<Unary>),
 }
 
 #[derive(Debug)]
@@ -139,13 +141,31 @@ impl Multiplicative {
 
 impl Unary {
     pub fn parse<'a>(tokens: Tokens<'a>) -> (Unary, Tokens<'a>) {
-        let (primary, tokens) = Primary::parse(tokens);
-        (Unary::Primary(Box::new(primary)), tokens)
+        match tokens[0] {
+            Token::OpAdd => {
+                let (unary, tokens) = Unary::parse(&tokens[1..]);
+                (Unary::UnaryPlus(Box::new(unary)), tokens)
+            }
+            Token::OpSub => {
+                let (unary, tokens) = Unary::parse(&tokens[1..]);
+                (Unary::UnaryMinus(Box::new(unary)), tokens)
+            }
+            _ => {
+                let (primary, tokens) = Primary::parse(tokens);
+                (Unary::Primary(Box::new(primary)), tokens)
+            }
+        }
     }
 
     pub fn gen_code(self, reg: usize) -> usize {
         match self {
             Unary::Primary(primary) => primary.gen_code(reg),
+            Unary::UnaryPlus(unary) => unary.gen_code(reg),
+            Unary::UnaryMinus(unary) => {
+                let reg = unary.gen_code(reg);
+                println!("  %{} = sub i32 0, %{}", reg + 1, reg);
+                reg + 1
+            }
         }
     }
 }
