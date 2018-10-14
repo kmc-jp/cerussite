@@ -62,18 +62,18 @@ impl<'a> Iterator for Lexer<'a> {
         let source = self.source;
 
         // find longest token
-        let last = self
-            .chars
-            .peeking_take_while(|&(_, pos, _)| Token::from_str(&source[first..pos]).is_some())
-            .fold(first, |_, (_, pos, _)| pos);
+        let mut token = None;
+        self.chars
+            .peeking_take_while(|&(_, pos, _)| {
+                let maybe_token = Token::from_str(&source[first..pos]);
+                let is_valid = maybe_token.is_some();
+                if is_valid {
+                    token = maybe_token;
+                }
+                is_valid
+            })
+            .for_each(drop);
 
-        if first == last {
-            // first == last means there are no possible valid token here.
-            // this occurs when unsupported character appeared ('`', '\', '#', etc.)
-            // that is syntax error, stop lexing.
-            None
-        } else {
-            Token::from_str(&source[first..last])
-        }
+        token
     }
 }
