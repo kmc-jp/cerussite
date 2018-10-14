@@ -12,8 +12,10 @@ impl PartialEq for Identity {
 }
 impl Eq for Identity {}
 impl Identity {
-    fn next(&mut self) {
+    fn next(&mut self) -> Identity {
+        let prev = self.0;
         self.0 += 1;
+        Identity(prev)
     }
 }
 #[test]
@@ -33,9 +35,7 @@ impl IdentityGenerator {
         IdentityGenerator(id)
     }
     fn generate(&mut self) -> Identity {
-        let prev = self.0;
-        self.0.next();
-        prev
+        self.0.next()
     }
 }
 #[test]
