@@ -21,8 +21,13 @@ fn test_identity() {
 }
 
 struct IdentityGenerator(Identity);
+impl IdentityGenerator {
+    fn new() -> IdentityGenerator {
+        let id = Identity(0);
+        IdentityGenerator(id)
+    }
+}
 #[test]
 fn test_identity_generator() {
-    let a = Identity(0);
-    let _ = IdentityGenerator(a);
+    let _ = IdentityGenerator::new();
 }
