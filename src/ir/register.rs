@@ -16,9 +16,9 @@ fn test_identity() {
     assert_eq!(a, c);
 }
 
-struct IdentityGenerator(Identity);
+pub struct IdentityGenerator(Identity);
 impl IdentityGenerator {
-    fn new() -> IdentityGenerator {
+    pub fn new() -> IdentityGenerator {
         let id = Identity(0);
         IdentityGenerator(id)
     }
@@ -43,7 +43,7 @@ impl PartialEq for Register {
 }
 impl Eq for Register {}
 impl Register {
-    fn new(gen: &mut IdentityGenerator) -> Register {
+    pub fn new(gen: &mut IdentityGenerator) -> Register {
         Register(gen.generate())
     }
 }
