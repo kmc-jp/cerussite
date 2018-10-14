@@ -19,3 +19,10 @@ fn test_identity() {
     assert!(a == b);
     assert!(a != c);
 }
+
+struct IdentityGenerator(Identity);
+#[test]
+fn test_identity_generator() {
+    let a = Identity(0);
+    let _ = IdentityGenerator(a);
+}
