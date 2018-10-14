@@ -3,7 +3,7 @@ use itertools::Itertools;
 use std::iter::Peekable;
 
 /// split the source code into tokens
-pub struct Tokenizer<'a> {
+pub struct Lexer<'a> {
     /// entire source code
     source: &'a str,
 
@@ -12,9 +12,9 @@ pub struct Tokenizer<'a> {
     chars: Peekable<Box<dyn Iterator<Item = (usize, usize, char)> + 'a>>,
 }
 
-impl<'a> Tokenizer<'a> {
-    pub fn from_source(source: &'a str) -> Tokenizer {
-        Tokenizer {
+impl<'a> Lexer<'a> {
+    pub fn from_source(source: &'a str) -> Lexer {
+        Lexer {
             source: source,
             chars: gen_bid_char_indices(source),
         }
@@ -42,7 +42,7 @@ fn gen_bid_char_indices<'a>(
     bid_char_indices.peekable()
 }
 
-impl<'a> Iterator for Tokenizer<'a> {
+impl<'a> Iterator for Lexer<'a> {
     type Item = &'a str;
 
     /// find a next token starting from current position (is it whitespace, skips them and from
@@ -68,7 +68,7 @@ impl<'a> Iterator for Tokenizer<'a> {
         if first == last {
             // first == last means there are no possible valid token here.
             // this occurs when unsupported character appeared ('`', '\', '#', etc.)
-            // that is syntax error, stop tokenizing.
+            // that is syntax error, stop lexing.
             None
         } else {
             Some(&source[first..last])

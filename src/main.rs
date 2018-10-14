@@ -5,9 +5,9 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 
-mod tokenizer;
+mod lexer;
 
-use tokenizer::Tokenizer;
+use lexer::Lexer;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let file_name = env::args().nth(1).expect("no file name supplied.");
@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut source = String::new();
     File::open(&*file_name)?.read_to_string(&mut source)?;
 
-    let tokens: Vec<&str> = Tokenizer::from_source(&source).collect();
+    let tokens: Vec<&str> = Lexer::from_source(&source).collect();
 
     eprintln!("{:?}", tokens);
 
