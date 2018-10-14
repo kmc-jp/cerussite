@@ -23,10 +23,10 @@ pub enum Primary {
     Paren(Box<Expr>),
 }
 
-use token::Token;
+use token::Tokens;
 
 impl Expr {
-    pub fn parse<'a>(tokens: &'a [Token<'a>]) -> Expr {
+    pub fn parse<'a>(tokens: Tokens<'a>) -> Expr {
         unimplemented!();
     }
 }

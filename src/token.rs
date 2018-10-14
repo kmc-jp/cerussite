@@ -56,6 +56,8 @@ define_tokens! {
     regex (RE_LITERAL) Literal: "^[0-9]+$";
 }
 
+pub type Tokens<'a> = &'a [Token<'a>];
+
 impl<'a> Token<'a> {
     pub fn unwrap_literal(&self) -> &str {
         match *self {
