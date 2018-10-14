@@ -39,6 +39,12 @@ impl Expr {
         let (additive, tokens) = Additive::parse(tokens);
         (Expr::Additive(Box::new(additive)), tokens)
     }
+
+    pub fn gen_code(self, reg: usize) -> usize {
+        match self {
+            Expr::Additive(additive) => additive.gen_code(reg),
+        }
+    }
 }
 
 /// <additive> ::= <multiplicative>
@@ -64,6 +70,24 @@ impl Additive {
                 Additive::parse_additive_dash(additive, tokens)
             }
             _ => (lhs, tokens),
+        }
+    }
+
+    pub fn gen_code(self, reg: usize) -> usize {
+        match self {
+            Additive::Multiplicative(multiplicative) => multiplicative.gen_code(reg),
+            Additive::Add(additive, multiplicative) => {
+                let lhs = additive.gen_code(reg);
+                let rhs = multiplicative.gen_code(lhs + 1);
+                println!("  %{} = add i32 %{}, %{}", rhs + 1, lhs, rhs);
+                rhs + 1
+            }
+            Additive::Sub(additive, multiplicative) => {
+                let lhs = additive.gen_code(reg);
+                let rhs = multiplicative.gen_code(lhs + 1);
+                println!("  %{} = sub i32 %{}, %{}", rhs + 1, lhs, rhs);
+                rhs + 1
+            }
         }
     }
 }
@@ -95,6 +119,10 @@ impl Multiplicative {
             }
             _ => (lhs, tokens),
         }
+    }
+
+    pub fn gen_code(self, reg: usize) -> usize {
+        unimplemented!();
     }
 }
 
