@@ -373,7 +373,7 @@ fn print_for(version: Version, results: Results) {
 
 fn main() -> io::Result<()> {
     let verbose = env::args().any(|arg| arg == "--verbose" || arg == "-v");
-    let test_src_dir: PathBuf = ["test", "test-src", "ok"].iter().collect();
+    let test_src_dir: PathBuf = ["test", "ok"].iter().collect();
 
     walk_dir(
         &test_src_dir,
