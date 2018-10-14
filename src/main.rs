@@ -8,6 +8,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
 
+mod ast;
 mod lexer;
 mod token;
 
