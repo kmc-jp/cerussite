@@ -10,6 +10,7 @@ use std::io::prelude::*;
 
 mod lexer;
 mod token;
+mod ir;
 
 use lexer::Lexer;
 use token::Token;
