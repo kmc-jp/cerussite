@@ -45,3 +45,10 @@ fn test_identity_generator() {
     let c = a.generate();
     assert!(b != c);
 }
+
+struct Register(Identity);
+#[test]
+fn test_register() {
+    let mut a = IdentityGenerator::new();
+    let _b = Register(a.generate());
+}
