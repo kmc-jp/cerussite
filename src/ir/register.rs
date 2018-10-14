@@ -12,8 +12,8 @@ fn test_identity() {
     let a = Identity(0);
     let mut b = Identity(0);
     let c = b.next();
-    assert!(a != b);
-    assert!(a == c);
+    assert_ne!(a, b);
+    assert_eq!(a, c);
 }
 
 struct IdentityGenerator(Identity);
@@ -31,7 +31,7 @@ fn test_identity_generator() {
     let mut a = IdentityGenerator::new();
     let b = a.generate();
     let c = a.generate();
-    assert!(b != c);
+    assert_ne!(b, c);
 }
 
 #[derive(Debug)]
@@ -52,5 +52,5 @@ fn test_register() {
     let mut a = IdentityGenerator::new();
     let b = Register::new(&mut a);
     let c = Register::new(&mut a);
-    assert!(b != c);
+    assert_ne!(b, c);
 }
