@@ -56,11 +56,4 @@ define_tokens! {
     regex (RE_LITERAL) Literal: "^[0-9]+$";
 }
 
-impl<'a> Token<'a> {
-    pub fn unwrap_literal(&self) -> &str {
-        match *self {
-            Token::Literal(n) => n,
-            _ => panic!("expected literal, found {:?}", self),
-        }
-    }
-}
+pub type Tokens<'a> = &'a [Token<'a>];
