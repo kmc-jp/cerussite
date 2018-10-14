@@ -102,6 +102,24 @@ impl Unary {
 
 impl Primary {
     pub fn parse<'a>(tokens: Tokens<'a>) -> (Primary, Tokens<'a>) {
-        unimplemented!();
+        assert!(
+            !tokens.is_empty(),
+            "expected primary expression, found nothing."
+        );
+
+        match tokens[0] {
+            Token::Literal(n) => {
+                let constant = n.parse().expect("internal error: could not parse literal.");
+                (Primary::Constant(constant), &tokens[1..])
+            }
+            Token::SyLPar => {
+                let (expr, tokens) = Expr::parse(&tokens[1..]);
+                assert_eq!(tokens[0], Token::SyRPar);
+                (Primary::Paren(Box::new(expr)), &tokens[1..])
+            }
+            _ => {
+                panic!("expected primary expression, found {:?}", tokens);
+            }
+        }
     }
 }
