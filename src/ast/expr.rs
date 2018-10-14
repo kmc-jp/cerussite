@@ -15,6 +15,7 @@ pub enum Multiplicative {
     Unary(Box<Unary>),
     Mul(Box<Multiplicative>, Box<Unary>),
     Div(Box<Multiplicative>, Box<Unary>),
+    Rem(Box<Multiplicative>, Box<Unary>),
 }
 
 #[derive(Debug)]
@@ -114,6 +115,11 @@ impl Multiplicative {
                 let multiplicative = Multiplicative::Div(Box::new(lhs), Box::new(rhs));
                 Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
             }
+            Some(Token::OpRem) => {
+                let (rhs, tokens) = Unary::parse(&tokens[1..]);
+                let multiplicative = Multiplicative::Rem(Box::new(lhs), Box::new(rhs));
+                Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
+            }
             _ => (lhs, tokens),
         }
     }
@@ -131,6 +137,12 @@ impl Multiplicative {
                 let lhs = multiplicative.gen_code(reg);
                 let rhs = unary.gen_code(lhs + 1);
                 println!("  %{} = sdiv i32 %{}, %{}", rhs + 1, lhs, rhs);
+                rhs + 1
+            }
+            Multiplicative::Rem(multiplicative, unary) => {
+                let lhs = multiplicative.gen_code(reg);
+                let rhs = unary.gen_code(lhs + 1);
+                println!("  %{} = srem i32 %{}, %{}", rhs + 1, lhs, rhs);
                 rhs + 1
             }
         }
