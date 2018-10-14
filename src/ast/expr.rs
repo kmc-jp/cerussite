@@ -63,9 +63,33 @@ impl Additive {
     }
 }
 
+/// <multiplicative> ::= <unary>
+///                    | <unary> <multiplicative-dash>
+/// <multiplicative-dash> ::= OpMul <unary> <multiplicative-dash>
+///                         | OpDiv <unary> <multiplicative-dash>
 impl Multiplicative {
     pub fn parse<'a>(tokens: Tokens<'a>) -> (Multiplicative, Tokens<'a>) {
-        unimplemented!();
+        let (lhs, tokens) = Unary::parse(tokens);
+        Multiplicative::parse_multiplicative_dash(Multiplicative::Unary(Box::new(lhs)), tokens)
+    }
+
+    fn parse_multiplicative_dash<'a>(
+        lhs: Multiplicative,
+        tokens: Tokens<'a>,
+    ) -> (Multiplicative, Tokens<'a>) {
+        match tokens.iter().next() {
+            Some(Token::OpMul) => {
+                let (rhs, tokens) = Unary::parse(&tokens[1..]);
+                let multiplicative = Multiplicative::Mul(Box::new(lhs), Box::new(rhs));
+                Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
+            }
+            Some(Token::OpDiv) => {
+                let (rhs, tokens) = Unary::parse(&tokens[1..]);
+                let multiplicative = Multiplicative::Div(Box::new(lhs), Box::new(rhs));
+                Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
+            }
+            _ => (lhs, tokens),
+        }
     }
 }
 
