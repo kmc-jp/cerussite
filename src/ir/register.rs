@@ -11,11 +11,17 @@ impl PartialEq for Identity {
     }
 }
 impl Eq for Identity {}
+impl Identity {
+    fn next(&mut self) {
+        self.0 += 1;
+    }
+}
 #[test]
 fn test_identity() {
     let a = Identity(0);
     let b = a;
-    let c = Identity(1);
+    let mut c = b;
+    c.next();
     assert!(a == b);
     assert!(a != c);
 }
