@@ -1,10 +1,5 @@
+#[derive(Eq, PartialEq)]
 struct Identity(i32);
-impl PartialEq for Identity {
-    fn eq(&self, other: &Identity) -> bool {
-        self.0 == other.0
-    }
-}
-impl Eq for Identity {}
 impl Identity {
     fn next(&mut self) -> Identity {
         let prev = self.0;
