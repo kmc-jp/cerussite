@@ -15,9 +15,17 @@ fn test_value() {
 
 enum Instruction {
     Ret(Value),
+    Add(Register, Value, Value),
 }
 #[test]
 fn test_instruction() {
-    let a = Value::Constant(0);
-    let _b = Instruction::Ret(a);
+    let mut gen = IdentityGenerator::new();
+    let reg1 = Register::new(&mut gen);
+    let reg2 = Register::new(&mut gen);
+    let reg3 = Register::new(&mut gen);
+    let val1 = Value::Register(reg1);
+    let val2 = Value::Register(reg2);
+    let val3 = Value::Constant(0);
+    let _ret = Instruction::Ret(val1);
+    let _add = Instruction::Add(reg3, val2, val3);
 }
