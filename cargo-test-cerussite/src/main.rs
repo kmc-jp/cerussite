@@ -12,7 +12,7 @@ fn main() -> io::Result<()> {
     let res = Command::new("cargo")
         .arg("build")
         .arg("--release")
-        .current_dir(root.join("test/cerussite-test-tool"))
+        .current_dir(root.join("cerussite-test-tool"))
         .spawn()?
         .wait()?;
     if !res.success() {
@@ -43,12 +43,11 @@ fn main() -> io::Result<()> {
     assert_eq!(args.next().map(|x| x.contains("cargo")), Some(true));
     assert_eq!(args.next(), Some("test-cerussite".into()));
 
-    let res =
-        Command::new(root.join("test/cerussite-test-tool/target/release/cerussite-test-tool"))
-            .args(args)
-            .current_dir(root)
-            .spawn()?
-            .wait()?;
+    let res = Command::new(root.join("cerussite-test-tool/target/release/cerussite-test-tool"))
+        .args(args)
+        .current_dir(root)
+        .spawn()?
+        .wait()?;
     if !res.success() {
         return Err(io::Error::new(
             io::ErrorKind::Other,

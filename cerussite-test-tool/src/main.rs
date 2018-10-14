@@ -23,13 +23,14 @@ fn colorize() -> bool {
     atty::is(Stream::Stdout)
 }
 
-fn prefixed_file_name(path: &Path, prefix: &str) -> String {
+fn modified_file_name(path: &Path, suffix: &str, ext: Option<&str>) -> String {
     let name = path
-        .file_name()
+        .file_stem()
         .expect("internal error: there are no files without name!")
         .to_str()
         .expect("internal error: file name cannot be represented in UTF-8.");
-    format!("{}{}", prefix, name)
+    let ext = ext.map(|x| format!(".{}", x)).unwrap_or(format!(""));
+    format!("{}{}{}", name, suffix, ext)
 }
 
 enum CompilationResult {
@@ -45,10 +46,7 @@ enum CompilationResult {
 
 /// returns the result of compilation with clang (for reference)
 fn reference_compile(src_path: &Path) -> io::Result<CompilationResult> {
-    let ir_path = {
-        let output_name = prefixed_file_name(&src_path, "ref_");
-        src_path.with_file_name(output_name).with_extension("ll")
-    };
+    let ir_path = src_path.with_file_name(modified_file_name(src_path, "_ref", Some("ll")));
 
     // compile
     let output = Command::new("clang")
@@ -78,10 +76,7 @@ fn reference_compile(src_path: &Path) -> io::Result<CompilationResult> {
 
 /// returns the llvm_ir of compilation with our current compiler
 fn current_compile(src_path: &Path) -> io::Result<CompilationResult> {
-    let ir_path = {
-        let output_name = prefixed_file_name(&src_path, "cur_");
-        src_path.with_file_name(output_name).with_extension("ll")
-    };
+    let ir_path = src_path.with_file_name(modified_file_name(src_path, "_cur", Some("ll")));
 
     // compile
     let output = Command::new("cargo")
@@ -373,7 +368,7 @@ fn print_for(version: Version, results: Results) {
 
 fn main() -> io::Result<()> {
     let verbose = env::args().any(|arg| arg == "--verbose" || arg == "-v");
-    let test_src_dir: PathBuf = ["test", "test-src", "ok"].iter().collect();
+    let test_src_dir: PathBuf = ["test", "ok"].iter().collect();
 
     walk_dir(
         &test_src_dir,
@@ -401,6 +396,8 @@ fn main() -> io::Result<()> {
             |path| Ok(path.to_path_buf()),
         )?;
     }
+
+    let mut any_fails = false;
 
     for path in path_to_test {
         colored_print!{
@@ -431,9 +428,15 @@ fn main() -> io::Result<()> {
             print_for(Version::Reference, refr);
             print_for(Version::Current, curr);
         }
+
+        any_fails |= !status;
     }
 
-    Ok(())
+    if !any_fails {
+        Ok(())
+    } else {
+        Err(io::Error::new(io::ErrorKind::Other, "some test fails."))
+    }
 }
 
 fn walk_dir<T>(
