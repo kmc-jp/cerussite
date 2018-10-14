@@ -47,8 +47,16 @@ fn test_identity_generator() {
 }
 
 struct Register(Identity);
+impl PartialEq for Register {
+    fn eq(&self, other: &Register) -> bool {
+        self.0 == other.0
+    }
+}
+impl Eq for Register {}
 #[test]
 fn test_register() {
     let mut a = IdentityGenerator::new();
-    let _b = Register(a.generate());
+    let b = Register(a.generate());
+    let c = Register(a.generate());
+    assert!(b != c);
 }
