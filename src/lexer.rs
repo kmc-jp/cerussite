@@ -2,8 +2,10 @@ use itertools::Itertools;
 
 use std::iter::Peekable;
 
+use token::Token;
+
 /// split the source code into tokens
-pub struct Tokenizer<'a> {
+pub struct Lexer<'a> {
     /// entire source code
     source: &'a str,
 
@@ -12,9 +14,9 @@ pub struct Tokenizer<'a> {
     chars: Peekable<Box<dyn Iterator<Item = (usize, usize, char)> + 'a>>,
 }
 
-impl<'a> Tokenizer<'a> {
-    pub fn from_source(source: &'a str) -> Tokenizer {
-        Tokenizer {
+impl<'a> Lexer<'a> {
+    pub fn from_source(source: &'a str) -> Lexer {
+        Lexer {
             source: source,
             chars: gen_bid_char_indices(source),
         }
@@ -42,8 +44,8 @@ fn gen_bid_char_indices<'a>(
     bid_char_indices.peekable()
 }
 
-impl<'a> Iterator for Tokenizer<'a> {
-    type Item = &'a str;
+impl<'a> Iterator for Lexer<'a> {
+    type Item = Token<'a>;
 
     /// find a next token starting from current position (is it whitespace, skips them and from
     /// a next non-whitespace character).  if entire source code consumed, this returns None.
@@ -60,50 +62,18 @@ impl<'a> Iterator for Tokenizer<'a> {
         let source = self.source;
 
         // find longest token
-        let last = self
-            .chars
-            .peeking_take_while(|&(_, pos, _)| is_valid_token(&source[first..pos]))
-            .fold(first, |_, (_, pos, _)| pos);
+        let mut token = None;
+        self.chars
+            .peeking_take_while(|&(_, pos, _)| {
+                let maybe_token = Token::from_str(&source[first..pos]);
+                let is_valid = maybe_token.is_some();
+                if is_valid {
+                    token = maybe_token;
+                }
+                is_valid
+            })
+            .for_each(drop);
 
-        if first == last {
-            // first == last means there are no possible valid token here.
-            // this occurs when unsupported character appeared ('`', '\', '#', etc.)
-            // that is syntax error, stop tokenizing.
-            None
-        } else {
-            Some(&source[first..last])
-        }
+        token
     }
-}
-
-/// check if given `s` is valid token or not.
-/// TODO: under construction. maybe regex is used in the future?
-fn is_valid_token(s: &str) -> bool {
-    eprintln!("checking s: {:?}", s);
-    // is it a number?
-    if let Ok(_) = s.parse::<i32>() {
-        return true;
-    }
-
-    // is it a keyword (or the beginning of keyword)?
-    let keywords = ["int", "main", "void", "return"];
-    if keywords.iter().any(|kw| kw.starts_with(s)) {
-        return true;
-    }
-
-    // is it a symbol?
-    let symbols = ["(", ")", "{", "}", ";"];
-    if symbols.iter().any(|sym| sym.starts_with(s)) {
-        return true;
-    }
-
-    // is it a operator?
-    let operators = ["+", "-", "*", "/"];
-    if operators.iter().any(|op| op.starts_with(s)) {
-        return true;
-    }
-
-    // otherwise, it's not a valid token.
-    eprintln!("  is not a valid token.");
-    false
 }
