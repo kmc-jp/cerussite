@@ -1,4 +1,4 @@
-#[derive(Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 struct Identity(i32);
 impl Identity {
     fn next(&mut self) -> Identity {
@@ -34,6 +34,7 @@ fn test_identity_generator() {
     assert!(b != c);
 }
 
+#[derive(Debug)]
 struct Register(Identity);
 impl PartialEq for Register {
     fn eq(&self, other: &Register) -> bool {
