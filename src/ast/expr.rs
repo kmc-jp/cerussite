@@ -1,26 +1,31 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+#[derive(Debug)]
 pub enum Expr {
     Additive(Box<Additive>),
 }
 
+#[derive(Debug)]
 pub enum Additive {
     Multiplicative(Box<Multiplicative>),
     Add(Box<Additive>, Box<Multiplicative>),
     Sub(Box<Additive>, Box<Multiplicative>),
 }
 
+#[derive(Debug)]
 pub enum Multiplicative {
     Unary(Box<Unary>),
     Mul(Box<Multiplicative>, Box<Unary>),
     Div(Box<Multiplicative>, Box<Unary>),
 }
 
+#[derive(Debug)]
 pub enum Unary {
     Primary(Box<Primary>),
 }
 
+#[derive(Debug)]
 pub enum Primary {
     Constant(i32),
     Paren(Box<Expr>),
