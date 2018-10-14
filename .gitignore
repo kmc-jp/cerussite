@@ -1,9 +1,8 @@
-/test/cargo-test-cerussite/target
-/test/cerussite-test-tool/target
-/test/cargo-run-test/target
-/test/test-src/ok/*
-/test/test-src/ng/*
-!/test/test-src/ok/*.c
-!/test/test-src/ng/*.c
+/cargo-test-cerussite/target
+/cerussite-test-tool/target
+/test/ok/*
+/test/ng/*
+!/test/ok/*.c
+!/test/ng/*.c
 /target
 **/*.rs.bk
