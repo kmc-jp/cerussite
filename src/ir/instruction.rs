@@ -25,12 +25,18 @@ fn make_add_instruction<'a>(gen: &'a mut IdentityGenerator,
     let reg = Register::new(gen);
     Instruction::Add(reg, lhs, rhs)
 }
+fn get_target<'a>(inst: &'a Instruction) -> Option<Value<'a>> {
+    match inst {
+        Instruction::Ret(_) => None,
+        Instruction::Add(target, _, _) => Some(Value::Register(&target)),
+    }
+}
 #[test]
 fn test_instruction() {
     let mut gen = IdentityGenerator::new();
     let val1 = Value::Constant(1);
     let val2 = Value::Constant(2);
-    let val3 = Value::Constant(3);
-    let _add = make_add_instruction(&mut gen, val1, val2);
+    let add = make_add_instruction(&mut gen, val1, val2);
+    let val3 = get_target(&add).unwrap();
     let _ret = make_ret_instruction(val3);
 }
