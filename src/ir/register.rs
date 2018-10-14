@@ -5,8 +5,17 @@ impl Clone for Identity {
     }
 }
 impl Copy for Identity {}
+impl PartialEq for Identity {
+    fn eq(&self, other: &Identity) -> bool {
+        self.0 == other.0
+    }
+}
+impl Eq for Identity {}
 #[test]
 fn test_identity() {
-    let _a = Identity(0);
-    let _b = _a;
+    let a = Identity(0);
+    let b = a;
+    let c = Identity(1);
+    assert!(a == b);
+    assert!(a != c);
 }
