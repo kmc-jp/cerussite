@@ -57,12 +57,3 @@ define_tokens! {
 }
 
 pub type Tokens<'a> = &'a [Token<'a>];
-
-impl<'a> Token<'a> {
-    pub fn unwrap_literal(&self) -> &str {
-        match *self {
-            Token::Literal(n) => n,
-            _ => panic!("expected literal, found {:?}", self),
-        }
-    }
-}

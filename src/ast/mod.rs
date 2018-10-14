@@ -15,4 +15,10 @@ impl Ast {
         }
         Ast::Expr(expr)
     }
+
+    pub fn gen_code(self) -> usize {
+        match self {
+            Ast::Expr(expr) => expr.gen_code(1),
+        }
+    }
 }

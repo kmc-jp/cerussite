@@ -12,6 +12,7 @@ mod ast;
 mod lexer;
 mod token;
 
+use ast::Ast;
 use lexer::Lexer;
 use token::Token;
 
@@ -35,44 +36,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         _ => panic!("compilation error"),
     };
 
+    let ast = Ast::parse(tokens);
+
     println!("define i32 @main() #0 {{");
-    generate_code(tokens)?;
+    let reg = ast.gen_code();
+    println!("  ret i32 %{}", reg);
     println!("}}");
-
-    Ok(())
-}
-
-fn generate_code(tokens: &[Token]) -> Result<(), Box<dyn Error>> {
-    match tokens.len() {
-        0 => panic!("compilation error"),
-        1 => println!("  ret i32 {}", tokens[0].unwrap_literal()),
-        3 => handle_operator(tokens)?,
-        _ => panic!("compilation error"),
-    }
-
-    Ok(())
-}
-
-fn handle_operator(tokens: &[Token]) -> Result<(), Box<dyn Error>> {
-    assert_eq!(tokens.len(), 3);
-    let op_mn = match tokens[1] {
-        Token::OpAdd => "add",
-        Token::OpSub => "sub",
-        Token::OpMul => "mul",
-        Token::OpDiv => "sdiv",
-        op => panic!("operator '{:?}' is not yet supported.", op),
-    };
-
-    println!(
-        "  %1 = add i32 {}, 0",
-        tokens[0].unwrap_literal().parse::<i32>()?
-    );
-    println!(
-        "  %2 = add i32 {}, 0",
-        tokens[2].unwrap_literal().parse::<i32>()?
-    );
-    println!("  %3 = {} i32 %1, %2", op_mn);
-    println!("  ret i32 %3");
 
     Ok(())
 }

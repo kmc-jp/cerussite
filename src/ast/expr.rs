@@ -1,6 +1,3 @@
-#![allow(dead_code)]
-#![allow(unused_variables)]
-
 #[derive(Debug)]
 pub enum Expr {
     Additive(Box<Additive>),
@@ -179,7 +176,7 @@ impl Primary {
     pub fn gen_code(self, reg: usize) -> usize {
         match self {
             Primary::Constant(n) => {
-                println!("  %{} = add i32, {}, 0", reg, n);
+                println!("  %{} = add i32 {}, 0", reg, n);
                 reg
             }
             Primary::Paren(expr) => expr.gen_code(reg),
