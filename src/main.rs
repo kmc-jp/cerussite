@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 mod tokenizer;
+mod ir;
 
 use tokenizer::Tokenizer;
 
