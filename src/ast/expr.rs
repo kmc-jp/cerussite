@@ -146,8 +146,10 @@ impl Unary {
         (Unary::Primary(Box::new(primary)), tokens)
     }
 
-    fn gen_code(self, reg: usize) -> usize {
-        unimplemented!();
+    pub fn gen_code(self, reg: usize) -> usize {
+        match self {
+            Unary::Primary(primary) => primary.gen_code(reg),
+        }
     }
 }
 
@@ -171,6 +173,16 @@ impl Primary {
             _ => {
                 panic!("expected primary expression, found {:?}", tokens);
             }
+        }
+    }
+
+    pub fn gen_code(self, reg: usize) -> usize {
+        match self {
+            Primary::Constant(n) => {
+                println!("  %{} = add i32, {}, 0", reg, n);
+                reg
+            }
+            Primary::Paren(expr) => expr.gen_code(reg),
         }
     }
 }
