@@ -26,7 +26,31 @@ pub enum Primary {
 use token::Tokens;
 
 impl Expr {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> Expr {
+    pub fn parse<'a>(tokens: Tokens<'a>) -> (Expr, Tokens<'a>) {
+        unimplemented!();
+    }
+}
+
+impl Additive {
+    pub fn parse<'a>(tokens: Tokens<'a>) -> (Additive, Tokens<'a>) {
+        unimplemented!();
+    }
+}
+
+impl Multiplicative {
+    pub fn parse<'a>(tokens: Tokens<'a>) -> (Multiplicative, Tokens<'a>) {
+        unimplemented!();
+    }
+}
+
+impl Unary {
+    pub fn parse<'a>(tokens: Tokens<'a>) -> (Unary, Tokens<'a>) {
+        unimplemented!();
+    }
+}
+
+impl Primary {
+    pub fn parse<'a>(tokens: Tokens<'a>) -> (Primary, Tokens<'a>) {
         unimplemented!();
     }
 }

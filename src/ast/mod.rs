@@ -9,7 +9,10 @@ pub enum Ast {
 
 impl Ast {
     pub fn parse<'a>(tokens: Tokens<'a>) -> Ast {
-        let expr = Expr::parse(tokens);
+        let (expr, tokens) = Expr::parse(tokens);
+        if !tokens.is_empty() {
+            panic!("invalid tokens: {:?}", tokens);
+        }
         Ast::Expr(expr)
     }
 }
