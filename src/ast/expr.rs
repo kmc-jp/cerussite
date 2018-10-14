@@ -122,7 +122,21 @@ impl Multiplicative {
     }
 
     pub fn gen_code(self, reg: usize) -> usize {
-        unimplemented!();
+        match self {
+            Multiplicative::Unary(unary) => unary.gen_code(reg),
+            Multiplicative::Mul(multiplicative, unary) => {
+                let lhs = multiplicative.gen_code(reg);
+                let rhs = unary.gen_code(lhs + 1);
+                println!("  %{} = mul i32 %{}, %{}", rhs + 1, lhs, rhs);
+                rhs + 1
+            }
+            Multiplicative::Div(multiplicative, unary) => {
+                let lhs = multiplicative.gen_code(reg);
+                let rhs = unary.gen_code(lhs + 1);
+                println!("  %{} = sdiv i32 %{}, %{}", rhs + 1, lhs, rhs);
+                rhs + 1
+            }
+        }
     }
 }
 
@@ -130,6 +144,10 @@ impl Unary {
     pub fn parse<'a>(tokens: Tokens<'a>) -> (Unary, Tokens<'a>) {
         let (primary, tokens) = Primary::parse(tokens);
         (Unary::Primary(Box::new(primary)), tokens)
+    }
+
+    fn gen_code(self, reg: usize) -> usize {
+        unimplemented!();
     }
 }
 
