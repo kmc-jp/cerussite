@@ -12,3 +12,12 @@ fn test_value() {
     let _c = Value::Constant(0);
     let _d = Value::Register(b);
 }
+
+enum Instruction {
+    Ret(Value),
+}
+#[test]
+fn test_instruction() {
+    let a = Value::Constant(0);
+    let _b = Instruction::Ret(a);
+}
