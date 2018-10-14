@@ -35,7 +35,7 @@ fn test_identity_generator() {
 }
 
 #[derive(Debug)]
-struct Register(Identity);
+pub struct Register(Identity);
 impl PartialEq for Register {
     fn eq(&self, other: &Register) -> bool {
         self.0 == other.0
