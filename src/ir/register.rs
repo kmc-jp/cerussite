@@ -32,8 +32,16 @@ impl IdentityGenerator {
         let id = Identity(0);
         IdentityGenerator(id)
     }
+    fn generate(&mut self) -> Identity {
+        let prev = self.0;
+        self.0.next();
+        prev
+    }
 }
 #[test]
 fn test_identity_generator() {
-    let _ = IdentityGenerator::new();
+    let mut a = IdentityGenerator::new();
+    let b = a.generate();
+    let c = a.generate();
+    assert!(b != c);
 }
