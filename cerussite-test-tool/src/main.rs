@@ -402,6 +402,8 @@ fn main() -> io::Result<()> {
         )?;
     }
 
+    let mut any_fails = false;
+
     for path in path_to_test {
         colored_print!{
             colorize();
@@ -431,9 +433,15 @@ fn main() -> io::Result<()> {
             print_for(Version::Reference, refr);
             print_for(Version::Current, curr);
         }
+
+        any_fails |= !status;
     }
 
-    Ok(())
+    if !any_fails {
+        Ok(())
+    } else {
+        Err(io::Error::new(io::ErrorKind::Other, "some test fails."))
+    }
 }
 
 fn walk_dir<T>(
