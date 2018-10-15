@@ -54,7 +54,11 @@ impl Compound {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Compound {
         match tokens.next() {
             Some(Token::SyLBrace) => {
-                let decls = Vec::new();
+                let mut decls = Vec::new();
+                while Decl::is_your_job(tokens) {
+                    decls.push(Decl::parse(tokens));
+                }
+
                 let mut stmts = Vec::new();
                 loop {
                     stmts.push(Stmt::parse(tokens));
@@ -95,6 +99,32 @@ impl Stmt {
         }
     }
 }
+
+impl Decl {
+    pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
+        DeclSpecifier::is_your_job(tokens)
+    }
+
+    pub fn parse<'a>(_tokens: &mut Tokens<'a>) -> Decl {
+        unimplemented!();
+    }
+}
+
+impl DeclSpecifier {
+    pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
+        Type::is_your_job(tokens)
+    }
+}
+
+impl Type {
+    pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
+        tokens.peek() == Some(Token::TyInt)
+    }
+}
+
+impl InitDeclarator {}
+impl Declarator {}
+impl Initializer {}
 
 impl Jump {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Jump {
