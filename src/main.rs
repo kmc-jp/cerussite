@@ -9,9 +9,9 @@ use std::fs::File;
 use std::io::prelude::*;
 
 mod ast;
+mod ir;
 mod lexer;
 mod token;
-mod ir;
 
 use ast::Ast;
 use lexer::Lexer;
@@ -29,19 +29,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     assert!(tokens.len() >= 9);
 
-    let tokens = match (&tokens[0..7], &tokens[tokens.len() - 2..]) {
-        (
-            &[Token::TyInt, Token::Ident("main"), Token::SyLPar, Token::TyVoid, Token::SyRPar, Token::SyLBrace, Token::KwReturn],
-            &[Token::SySemicolon, Token::SyRBrace],
-        ) => &tokens[7..tokens.len() - 2],
+    let tokens = match &tokens[0..5] {
+        &[Token::TyInt, Token::Ident("main"), Token::SyLPar, Token::TyVoid, Token::SyRPar] => {
+            &tokens[5..]
+        }
         _ => panic!("compilation error"),
     };
 
     let ast = Ast::parse(tokens);
 
     println!("define i32 @main() #0 {{");
-    let reg = ast.gen_code();
-    println!("  ret i32 %{}", reg);
+    let _ = ast.gen_code();
     println!("}}");
 
     Ok(())
