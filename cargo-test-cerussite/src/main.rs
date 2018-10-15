@@ -23,9 +23,9 @@ fn main() -> io::Result<()> {
     }
 
     // build cerussite
-    eprintln!("> building cerussite");
+    eprintln!("> building cerussite with `cargo test`");
     let res = Command::new("cargo")
-        .arg("build")
+        .arg("test")
         .current_dir(&root)
         .spawn()?
         .wait()?;
