@@ -26,11 +26,11 @@ impl<'a> Instruction<'a> {
         let reg = Register::new(gen);
         Instruction::Add(reg, lhs, rhs)
     }
-}
-fn get_target<'a>(inst: &'a Instruction) -> Option<Value<'a>> {
-    match inst {
-        Instruction::Ret(_) => None,
-        Instruction::Add(target, _, _) => Some(Value::Register(&target)),
+    fn target(inst: &'a Instruction) -> Option<Value<'a>> {
+        match inst {
+            Instruction::Ret(_) => None,
+            Instruction::Add(target, _, _) => Some(Value::Register(&target)),
+        }
     }
 }
 #[test]
@@ -39,6 +39,6 @@ fn test_instruction() {
     let val1 = Value::Constant(1);
     let val2 = Value::Constant(2);
     let add = Instruction::add(&mut gen, val1, val2);
-    let val3 = get_target(&add).unwrap();
+    let val3 = Instruction::target(&add).unwrap();
     let _ret = Instruction::ret(val3);
 }
