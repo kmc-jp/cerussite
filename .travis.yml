@@ -2,5 +2,17 @@ language: rust
 rust:
   - stable
 
+before_install:
+  - pushd cargo-test-cerussite
+
+install:
+  - cargo install --path .
+
+before_script:
+  - popd
+
+script:
+  - cargo test-cerussite -v
+
 notifications:
   slack: kmc-jp:OsbOUDQMNlIePv2IhnFrMAKI
