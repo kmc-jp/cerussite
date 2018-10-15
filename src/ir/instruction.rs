@@ -18,14 +18,6 @@ pub enum Instruction<'a> {
     Add(Register, Value<'a>, Value<'a>),
 }
 impl<'a> Instruction<'a> {
-    fn ret(val: Value) -> Instruction {
-        Instruction::Ret(val)
-    }
-    fn add(gen: &'a IdentityGenerator,
-           lhs: Value<'a>, rhs: Value<'a>) -> Instruction<'a> {
-        let reg = Register::new(gen);
-        Instruction::Add(reg, lhs, rhs)
-    }
     pub fn target(inst: &'a Instruction) -> Option<Value<'a>> {
         match inst {
             Instruction::Ret(_) => None,
@@ -38,7 +30,8 @@ fn test_instruction() {
     let gen = IdentityGenerator::new();
     let val1 = Value::Constant(1);
     let val2 = Value::Constant(2);
-    let add = Instruction::add(&gen, val1, val2);
+    let reg = Register::new(&gen);
+    let add = Instruction::Add(reg, val1, val2);
     let val3 = Instruction::target(&add).unwrap();
-    let _ret = Instruction::ret(val3);
+    let _ret = Instruction::Ret(val3);
 }
