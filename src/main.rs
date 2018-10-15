@@ -29,11 +29,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     assert!(tokens.len() >= 9);
 
-    let tokens = match (&tokens[0..6], &tokens[tokens.len() - 1..]) {
-        (
-            &[Token::TyInt, Token::Ident("main"), Token::SyLPar, Token::TyVoid, Token::SyRPar, Token::SyLBrace],
-            &[Token::SyRBrace],
-        ) => &tokens[6..tokens.len() - 1],
+    let tokens = match &tokens[0..5] {
+        &[Token::TyInt, Token::Ident("main"), Token::SyLPar, Token::TyVoid, Token::SyRPar] => {
+            &tokens[5..]
+        }
         _ => panic!("compilation error"),
     };
 
