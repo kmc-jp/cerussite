@@ -21,11 +21,11 @@ pub struct Decl {
 
 #[derive(Debug)]
 pub enum DeclSpecifier {
-    TypeSpecifier(Box<Type>),
+    TypeSpecifier(Box<TypeSpecifier>),
 }
 
 #[derive(Debug)]
-pub enum Type {
+pub enum TypeSpecifier {
     Int,
 }
 
@@ -126,7 +126,7 @@ impl Decl {
 
 impl DeclSpecifier {
     pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
-        Type::is_your_job(tokens)
+        TypeSpecifier::is_your_job(tokens)
     }
 
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> DeclSpecifier {
@@ -134,7 +134,7 @@ impl DeclSpecifier {
     }
 }
 
-impl Type {
+impl TypeSpecifier {
     pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
         tokens.peek() == Some(Token::TyInt)
     }
