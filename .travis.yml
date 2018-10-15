@@ -1,8 +1,9 @@
 language: rust
 rust:
   - stable
-  
+
 install:
+  - cd test-cerussite
   - cargo install --path .
 
 script:
