@@ -1,6 +1,12 @@
 language: rust
 rust:
   - stable
+  
+install:
+  - cargo install --path .
+
+script:
+  - cargo test-cerussite
 
 notifications:
   slack: kmc-jp:OsbOUDQMNlIePv2IhnFrMAKI
