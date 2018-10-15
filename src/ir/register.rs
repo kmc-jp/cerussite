@@ -16,9 +16,9 @@ fn test_identity() {
     assert_eq!(a, c);
 }
 
-struct IdentityGenerator(Identity);
+pub struct IdentityGenerator(Identity);
 impl IdentityGenerator {
-    fn new() -> IdentityGenerator {
+    pub fn new() -> IdentityGenerator {
         let id = Identity(0);
         IdentityGenerator(id)
     }
@@ -35,7 +35,7 @@ fn test_identity_generator() {
 }
 
 #[derive(Debug)]
-struct Register(Identity);
+pub struct Register(Identity);
 impl PartialEq for Register {
     fn eq(&self, other: &Register) -> bool {
         self.0 == other.0
@@ -43,7 +43,7 @@ impl PartialEq for Register {
 }
 impl Eq for Register {}
 impl Register {
-    fn new(gen: &mut IdentityGenerator) -> Register {
+    pub fn new(gen: &mut IdentityGenerator) -> Register {
         Register(gen.generate())
     }
 }
