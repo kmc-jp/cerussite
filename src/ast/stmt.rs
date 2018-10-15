@@ -1,8 +1,9 @@
-use super::expr::Expr;
+use super::expr::{Additive as AdditiveExpr, Expr};
 use token::{Token, Tokens};
 
 #[derive(Debug)]
 pub struct Compound {
+    decls: Vec<Decl>,
     stmts: Vec<Stmt>,
 }
 
@@ -10,6 +11,38 @@ pub struct Compound {
 pub enum Stmt {
     Compound(Box<Compound>),
     Jump(Box<Jump>),
+}
+
+#[derive(Debug)]
+pub struct Decl {
+    specs: Vec<DeclSpecifier>,
+    inits: Vec<InitDeclarator>,
+}
+
+#[derive(Debug)]
+pub enum DeclSpecifier {
+    TypeSpecifier(Box<Type>),
+}
+
+#[derive(Debug)]
+pub enum Type {
+    Int,
+}
+
+#[derive(Debug)]
+pub enum InitDeclarator {
+    Declarator(Box<Declarator>),
+    DeclaratorWithValue(Box<Declarator>, Box<Initializer>),
+}
+
+#[derive(Debug)]
+pub enum Declarator {
+    Identifier(String),
+}
+
+#[derive(Debug)]
+pub enum Initializer {
+    Additive(Box<AdditiveExpr>),
 }
 
 #[derive(Debug)]
@@ -21,6 +54,7 @@ impl Compound {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Compound {
         match tokens.next() {
             Some(Token::SyLBrace) => {
+                let decls = Vec::new();
                 let mut stmts = Vec::new();
                 loop {
                     stmts.push(Stmt::parse(tokens));
@@ -29,7 +63,7 @@ impl Compound {
                         break;
                     }
                 }
-                Compound { stmts }
+                Compound { stmts, decls }
             }
             other => {
                 panic!("expected compound statement (`{{`), found {:?}", other);
