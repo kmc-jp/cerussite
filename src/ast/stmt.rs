@@ -23,15 +23,10 @@ impl Compound {
             Some(Token::SyLBrace) => {
                 let mut stmts = Vec::new();
                 loop {
-                    eprintln!("rest of tokens: {:?}", tokens);
-                    let stmt = Stmt::parse(tokens);
-                    stmts.push(stmt);
-                    match tokens.peek() {
-                        Some(Token::SyRBrace) => {
-                            tokens.eat(Token::SyRBrace);
-                            break;
-                        }
-                        _ => continue,
+                    stmts.push(Stmt::parse(tokens));
+                    if let Some(Token::SyRBrace) = tokens.peek() {
+                        tokens.eat(Token::SyRBrace);
+                        break;
                     }
                 }
                 Compound { stmts }
@@ -54,14 +49,8 @@ impl Compound {
 impl Stmt {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Stmt {
         match tokens.peek() {
-            Some(Token::SyLBrace) => {
-                let compound = Compound::parse(tokens);
-                Stmt::Compound(Box::new(compound))
-            }
-            _ => {
-                let jump = Jump::parse(tokens);
-                Stmt::Jump(Box::new(jump))
-            }
+            Some(Token::SyLBrace) => Stmt::Compound(Box::new(Compound::parse(tokens))),
+            _ => Stmt::Jump(Box::new(Jump::parse(tokens))),
         }
     }
 
