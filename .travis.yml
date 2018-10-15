@@ -7,7 +7,7 @@ install:
   - cargo install --path .
 
 script:
-  - cargo test-cerussite
+  - cargo test-cerussite -v
 
 notifications:
   slack: kmc-jp:OsbOUDQMNlIePv2IhnFrMAKI
