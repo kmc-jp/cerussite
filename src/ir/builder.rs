@@ -3,16 +3,16 @@ use super::instruction::Value;
 use super::register::IdentityGenerator;
 use super::register::Register;
 
-struct Builder(IdentityGenerator);
+pub struct Builder(IdentityGenerator);
 impl<'a> Builder {
-    fn new() -> Builder {
+    pub fn new() -> Builder {
         let gen = IdentityGenerator::new();
         Builder(gen)
     }
-    fn ret(&self, val: Value<'a>) -> Instruction<'a> {
+    pub fn ret(&self, val: Value<'a>) -> Instruction<'a> {
         Instruction::Ret(val)
     }
-    fn add(&self, lhs: Value<'a>, rhs: Value<'a>) -> Instruction<'a> {
+    pub fn add(&self, lhs: Value<'a>, rhs: Value<'a>) -> Instruction<'a> {
         let reg = Register::new(&self.0);
         Instruction::Add(reg, lhs, rhs)
     }
