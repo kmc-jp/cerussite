@@ -105,14 +105,32 @@ impl Decl {
         DeclSpecifier::is_your_job(tokens)
     }
 
-    pub fn parse<'a>(_tokens: &mut Tokens<'a>) -> Decl {
-        unimplemented!();
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Decl {
+        let mut specs = Vec::new();
+        while DeclSpecifier::is_your_job(tokens) {
+            specs.push(DeclSpecifier::parse(tokens));
+        }
+
+        let mut inits = Vec::new();
+        loop {
+            if let Some(Token::SySemicolon) = tokens.peek() {
+                tokens.eat(Token::SySemicolon);
+                break;
+            }
+            inits.push(InitDeclarator::parse(tokens));
+        }
+
+        Decl { specs, inits }
     }
 }
 
 impl DeclSpecifier {
     pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
         Type::is_your_job(tokens)
+    }
+
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> DeclSpecifier {
+        unimplemented!();
     }
 }
 
@@ -122,7 +140,12 @@ impl Type {
     }
 }
 
-impl InitDeclarator {}
+impl InitDeclarator {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> InitDeclarator {
+        unimplemented!();
+    }
+}
+
 impl Declarator {}
 impl Initializer {}
 
