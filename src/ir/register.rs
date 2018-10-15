@@ -12,14 +12,6 @@ impl Identity {
         Identity(Cell::new(prev))
     }
 }
-#[test]
-fn test_identity() {
-    let a = Identity::new();
-    let b = Identity::new();
-    let c = b.next();
-    assert_ne!(a, b);
-    assert_eq!(a, c);
-}
 
 pub struct IdentityGenerator(Identity);
 impl IdentityGenerator {
@@ -30,13 +22,6 @@ impl IdentityGenerator {
     fn generate(&self) -> Identity {
         self.0.next()
     }
-}
-#[test]
-fn test_identity_generator() {
-    let a = IdentityGenerator::new();
-    let b = a.generate();
-    let c = a.generate();
-    assert_ne!(b, c);
 }
 
 #[derive(Debug)]
@@ -52,10 +37,33 @@ impl Register {
         Register(gen.generate())
     }
 }
-#[test]
-fn test_register() {
-    let a = IdentityGenerator::new();
-    let b = Register::new(&a);
-    let c = Register::new(&a);
-    assert_ne!(b, c);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_identity() {
+        let a = Identity::new();
+        let b = Identity::new();
+        let c = b.next();
+        assert_ne!(a, b);
+        assert_eq!(a, c);
+    }
+
+    #[test]
+    fn test_identity_generator() {
+        let a = IdentityGenerator::new();
+        let b = a.generate();
+        let c = a.generate();
+        assert_ne!(b, c);
+    }
+
+    #[test]
+    fn test_register() {
+        let a = IdentityGenerator::new();
+        let b = Register::new(&a);
+        let c = Register::new(&a);
+        assert_ne!(b, c);
+    }
 }
