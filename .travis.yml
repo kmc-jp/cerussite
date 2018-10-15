@@ -3,7 +3,7 @@ rust:
   - stable
 
 install:
-  - cd test-cerussite
+  - cd cargo-test-cerussite
   - cargo install --path .
 
 script:
