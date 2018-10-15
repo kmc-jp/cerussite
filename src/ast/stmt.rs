@@ -130,13 +130,17 @@ impl DeclSpecifier {
     }
 
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> DeclSpecifier {
-        unimplemented!();
+        DeclSpecifier::TypeSpecifier(Box::new(TypeSpecifier::parse(tokens)))
     }
 }
 
 impl TypeSpecifier {
     pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
         tokens.peek() == Some(Token::TyInt)
+    }
+
+    pub fn parse<'a>(tokens: &Tokens<'a>) -> TypeSpecifier {
+        unimplemented!();
     }
 }
 
