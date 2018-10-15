@@ -1,16 +1,18 @@
+use std::cell::Cell;
+
 #[derive(Debug, Eq, PartialEq)]
-struct Identity(i32);
+struct Identity(Cell<i32>);
 impl Identity {
-    fn next(&mut self) -> Identity {
-        let prev = self.0;
-        self.0 += 1;
-        Identity(prev)
+    fn next(&self) -> Identity {
+        let prev = self.0.get();
+        self.0.set(prev + 1);
+        Identity(Cell::new(prev))
     }
 }
 #[test]
 fn test_identity() {
-    let a = Identity(0);
-    let mut b = Identity(0);
+    let a = Identity(Cell::new(0));
+    let b = Identity(Cell::new(0));
     let c = b.next();
     assert_ne!(a, b);
     assert_eq!(a, c);
@@ -19,7 +21,7 @@ fn test_identity() {
 pub struct IdentityGenerator(Identity);
 impl IdentityGenerator {
     pub fn new() -> IdentityGenerator {
-        let id = Identity(0);
+        let id = Identity(Cell::new(0));
         IdentityGenerator(id)
     }
     fn generate(&mut self) -> Identity {
