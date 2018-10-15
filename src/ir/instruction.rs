@@ -1,7 +1,7 @@
 use super::register::IdentityGenerator;
 use super::register::Register;
 
-enum Value<'a> {
+pub enum Value<'a> {
     Constant(i32),
     Register(&'a Register),
 }
@@ -13,7 +13,7 @@ fn test_value() {
     let _d = Value::Register(&b);
 }
 
-enum Instruction<'a> {
+pub enum Instruction<'a> {
     Ret(Value<'a>),
     Add(Register, Value<'a>, Value<'a>),
 }
