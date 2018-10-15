@@ -8,6 +8,9 @@ before_install:
 install:
   - cargo install --path .
 
+before_script:
+  - cd ../
+
 script:
   - cargo test-cerussite -v
 
