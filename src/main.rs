@@ -15,7 +15,7 @@ mod token;
 
 use ast::Ast;
 use lexer::Lexer;
-use token::Token;
+use token::{Token, Tokens};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let file_name = env::args().nth(1).expect("no file name supplied.");
@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         _ => panic!("compilation error"),
     };
 
-    let ast = Ast::parse(tokens);
+    let ast = Ast::parse(Tokens::new(tokens));
 
     println!("define i32 @main() #0 {{");
     let _ = ast.gen_code();

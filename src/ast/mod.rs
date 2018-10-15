@@ -9,8 +9,8 @@ pub enum Ast {
 }
 
 impl Ast {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> Ast {
-        let (stmt, tokens) = Stmt::parse(tokens);
+    pub fn parse<'a>(mut tokens: Tokens<'a>) -> Ast {
+        let stmt = Stmt::parse(&mut tokens);
         if !tokens.is_empty() {
             panic!("invalid tokens: {:?}", tokens);
         }
