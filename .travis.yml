@@ -3,13 +3,13 @@ rust:
   - stable
 
 before_install:
-  - cd cargo-test-cerussite
+  - pushd cargo-test-cerussite
 
 install:
   - cargo install --path .
 
 before_script:
-  - cd ../
+  - popd
 
 script:
   - cargo test-cerussite -v
