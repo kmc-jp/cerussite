@@ -7,8 +7,8 @@ enum Value<'a> {
 }
 #[test]
 fn test_value() {
-    let mut a = IdentityGenerator::new();
-    let b = Register::new(&mut a);
+    let a = IdentityGenerator::new();
+    let b = Register::new(&a);
     let _c = Value::Constant(0);
     let _d = Value::Register(&b);
 }
@@ -21,7 +21,7 @@ impl<'a> Instruction<'a> {
     fn ret(val: Value) -> Instruction {
         Instruction::Ret(val)
     }
-    fn add(gen: &'a mut IdentityGenerator,
+    fn add(gen: &'a IdentityGenerator,
            lhs: Value<'a>, rhs: Value<'a>) -> Instruction<'a> {
         let reg = Register::new(gen);
         Instruction::Add(reg, lhs, rhs)
@@ -35,10 +35,10 @@ impl<'a> Instruction<'a> {
 }
 #[test]
 fn test_instruction() {
-    let mut gen = IdentityGenerator::new();
+    let gen = IdentityGenerator::new();
     let val1 = Value::Constant(1);
     let val2 = Value::Constant(2);
-    let add = Instruction::add(&mut gen, val1, val2);
+    let add = Instruction::add(&gen, val1, val2);
     let val3 = Instruction::target(&add).unwrap();
     let _ret = Instruction::ret(val3);
 }

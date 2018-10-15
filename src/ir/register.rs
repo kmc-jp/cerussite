@@ -27,13 +27,13 @@ impl IdentityGenerator {
         let id = Identity::new();
         IdentityGenerator(id)
     }
-    fn generate(&mut self) -> Identity {
+    fn generate(&self) -> Identity {
         self.0.next()
     }
 }
 #[test]
 fn test_identity_generator() {
-    let mut a = IdentityGenerator::new();
+    let a = IdentityGenerator::new();
     let b = a.generate();
     let c = a.generate();
     assert_ne!(b, c);
@@ -48,14 +48,14 @@ impl PartialEq for Register {
 }
 impl Eq for Register {}
 impl Register {
-    pub fn new(gen: &mut IdentityGenerator) -> Register {
+    pub fn new(gen: &IdentityGenerator) -> Register {
         Register(gen.generate())
     }
 }
 #[test]
 fn test_register() {
-    let mut a = IdentityGenerator::new();
-    let b = Register::new(&mut a);
-    let c = Register::new(&mut a);
+    let a = IdentityGenerator::new();
+    let b = Register::new(&a);
+    let c = Register::new(&a);
     assert_ne!(b, c);
 }
