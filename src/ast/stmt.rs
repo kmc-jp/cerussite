@@ -163,13 +163,16 @@ impl InitDeclarator {
 
 impl Declarator {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Declarator {
-        unimplemented!();
+        match tokens.next() {
+            Some(Token::Ident(ident)) => Declarator::Identifier(ident.into()),
+            other => panic!("expected identifier, found {:?}", other),
+        }
     }
 }
 
 impl Initializer {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Initializer {
-        unimplemented!();
+        Initializer::Additive(Box::new(AdditiveExpr::parse(tokens)))
     }
 }
 
