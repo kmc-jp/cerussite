@@ -139,19 +139,39 @@ impl TypeSpecifier {
         tokens.peek() == Some(Token::TyInt)
     }
 
-    pub fn parse<'a>(tokens: &Tokens<'a>) -> TypeSpecifier {
-        unimplemented!();
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> TypeSpecifier {
+        match tokens.next() {
+            Some(Token::TyInt) => TypeSpecifier::Int,
+            other => panic!("expected type-specifier, found {:?}", other),
+        }
     }
 }
 
 impl InitDeclarator {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> InitDeclarator {
+        let declarator = Declarator::parse(tokens);
+        match tokens.peek() {
+            Some(Token::OpAssign) => {
+                tokens.eat(Token::OpAssign);
+                let initializer = Initializer::parse(tokens);
+                InitDeclarator::DeclaratorWithValue(Box::new(declarator), Box::new(initializer))
+            }
+            _ => InitDeclarator::Declarator(Box::new(declarator)),
+        }
+    }
+}
+
+impl Declarator {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Declarator {
         unimplemented!();
     }
 }
 
-impl Declarator {}
-impl Initializer {}
+impl Initializer {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Initializer {
+        unimplemented!();
+    }
+}
 
 impl Jump {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Jump {

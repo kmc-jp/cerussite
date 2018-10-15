@@ -41,6 +41,8 @@ define_tokens! {
 
     literal KwReturn: "return";
 
+    literal OpAssign: "=";
+
     literal OpAdd: "+";
     literal OpSub: "-";
     literal OpMul: "*";
