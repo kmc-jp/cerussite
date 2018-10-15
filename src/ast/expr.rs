@@ -218,36 +218,22 @@ impl Primary {
 
 #[cfg(test)]
 mod tests {
-    use super::Expr;
+    use super::*;
     use token::{Token, Tokens};
 
     #[test]
     fn parse_expr() {
-        println!(
-            "{:?}",
-            Expr::parse(&mut Tokens::new(&[Token::Literal("42")]))
-        );
-        println!(
-            "{:?}",
-            Expr::parse(&mut Tokens::new(&[
-                Token::Literal("40"),
-                Token::OpAdd,
-                Token::Literal("2")
-            ]))
-        );
-        println!(
-            "{:?}",
-            Expr::parse(&mut Tokens::new(&[
+        let tests = vec![
+            Tokens::new(&[Token::Literal("42")]),
+            Tokens::new(&[Token::Literal("40"), Token::OpAdd, Token::Literal("2")]),
+            Tokens::new(&[
                 Token::Literal("42"),
                 Token::OpAdd,
                 Token::Literal("3"),
                 Token::OpMul,
-                Token::Literal("7")
-            ]))
-        );
-        println!(
-            "{:?}",
-            Expr::parse(&mut Tokens::new(&[
+                Token::Literal("7"),
+            ]),
+            Tokens::new(&[
                 Token::Literal("42"),
                 Token::OpAdd,
                 Token::SyLPar,
@@ -258,8 +244,13 @@ mod tests {
                 Token::OpSub,
                 Token::Literal("15"),
                 Token::SyRPar,
-                Token::SyRPar
-            ]))
-        );
+                Token::SyRPar,
+            ]),
+        ];
+
+        for mut tokens in tests {
+            println!("{:?}", Expr::parse(&mut tokens));
+            assert!(tokens.is_empty());
+        }
     }
 }
