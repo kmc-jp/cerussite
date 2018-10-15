@@ -45,6 +45,7 @@ define_tokens! {
     literal OpSub: "-";
     literal OpMul: "*";
     literal OpDiv: "/";
+    literal OpRem: "%";
 
     literal SyLPar: "(";
     literal SyRPar: ")";
