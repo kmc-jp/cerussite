@@ -23,6 +23,6 @@ fn test_builder() {
     let lhs = Value::Constant(0);
     let rhs = Value::Constant(1);
     let add = builder.add(lhs, rhs);
-    let target = Instruction::target(&add).unwrap();
+    let target = add.target().unwrap();
     let _ret = builder.ret(target);
 }

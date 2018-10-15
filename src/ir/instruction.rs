@@ -18,8 +18,8 @@ pub enum Instruction<'a> {
     Add(Register, Value<'a>, Value<'a>),
 }
 impl<'a> Instruction<'a> {
-    pub fn target(inst: &'a Instruction) -> Option<Value<'a>> {
-        match inst {
+    pub fn target(&'a self) -> Option<Value<'a>> {
+        match self {
             Instruction::Ret(_) => None,
             Instruction::Add(target, _, _) => Some(Value::Register(&target)),
         }
@@ -32,6 +32,6 @@ fn test_instruction() {
     let val2 = Value::Constant(2);
     let reg = Register::new(&gen);
     let add = Instruction::Add(reg, val1, val2);
-    let val3 = Instruction::target(&add).unwrap();
+    let val3 = add.target().unwrap();
     let _ret = Instruction::Ret(val3);
 }
