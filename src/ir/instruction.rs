@@ -26,7 +26,7 @@ impl<'a> Instruction<'a> {
         let reg = Register::new(gen);
         Instruction::Add(reg, lhs, rhs)
     }
-    fn target(inst: &'a Instruction) -> Option<Value<'a>> {
+    pub fn target(inst: &'a Instruction) -> Option<Value<'a>> {
         match inst {
             Instruction::Ret(_) => None,
             Instruction::Add(target, _, _) => Some(Value::Register(&target)),
