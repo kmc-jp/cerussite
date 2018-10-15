@@ -19,18 +19,17 @@ pub enum Jump {
 
 impl Compound {
     pub fn parse<'a>(mut tokens: Tokens<'a>) -> (Compound, Tokens<'a>) {
-        match tokens[0] {
-            Token::SyLBrace => {
-                tokens = &tokens[1..];
+        match tokens.next() {
+            Some(Token::SyLBrace) => {
                 let mut stmts = Vec::new();
                 loop {
                     eprintln!("rest of tokens: {:?}", tokens);
                     let (stmt, toks) = Stmt::parse(tokens);
                     tokens = toks;
                     stmts.push(stmt);
-                    match tokens[0] {
-                        Token::SyRBrace => {
-                            tokens = &tokens[1..];
+                    match tokens.peek() {
+                        Some(Token::SyRBrace) => {
+                            tokens.eat(Token::SyRBrace);
                             break;
                         }
                         _ => continue,
@@ -38,8 +37,8 @@ impl Compound {
                 }
                 (Compound { stmts }, tokens)
             }
-            _ => {
-                panic!("expected compound statement (`{{`), found {:?}", tokens[0]);
+            other => {
+                panic!("expected compound statement (`{{`), found {:?}", other);
             }
         }
     }
@@ -55,8 +54,8 @@ impl Compound {
 
 impl Stmt {
     pub fn parse<'a>(tokens: Tokens<'a>) -> (Stmt, Tokens<'a>) {
-        match tokens[0] {
-            Token::SyLBrace => {
+        match tokens.peek() {
+            Some(Token::SyLBrace) => {
                 let (compound, tokens) = Compound::parse(tokens);
                 (Stmt::Compound(Box::new(compound)), tokens)
             }
@@ -76,14 +75,17 @@ impl Stmt {
 }
 
 impl Jump {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> (Jump, Tokens<'a>) {
-        match tokens[0] {
-            Token::KwReturn => {
-                let (expr, tokens) = Expr::parse(&tokens[1..]);
-                assert_eq!(tokens[0], Token::SySemicolon);
-                (Jump::Return(Box::new(expr)), &tokens[1..])
+    pub fn parse<'a>(mut tokens: Tokens<'a>) -> (Jump, Tokens<'a>) {
+        match tokens.next() {
+            Some(Token::KwReturn) => {
+                let (expr, mut tokens) = Expr::parse(tokens);
+                tokens.eat_err(
+                    Token::SySemicolon,
+                    "missing semicolon after jump statement.",
+                );
+                (Jump::Return(Box::new(expr)), tokens)
             }
-            _ => panic!("expected jump statement, found other."),
+            other => panic!("expected jump statement, found {:?}", other),
         }
     }
 
@@ -95,5 +97,16 @@ impl Jump {
                 reg + 1
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_return() {
+        let tokens = Tokens::new(&[Token::KwReturn, Token::Literal("42"), Token::SySemicolon]);
+        let _ = Stmt::parse(tokens);
     }
 }
