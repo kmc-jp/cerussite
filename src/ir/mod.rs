@@ -3,6 +3,7 @@
 mod builder;
 mod instruction;
 mod register;
+mod value;
 
 #[cfg(test)]
 mod tests {
