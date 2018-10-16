@@ -1,3 +1,26 @@
+/*
+ * BNF which statement parser can accept for now
+ *
+ * <compound> ::=  { {<decl>}* {<stmt>}+ }
+ *
+ * <stmt> ::= <compound>
+ *          | <jump>
+ *
+ * <decl> ::= {<decl-specifier>}+ {<init-declarator>}*};
+ *
+ * <decl-specifier> ::= <type-specifier>
+ *
+ * <type-specifier> ::= int
+ *
+ * <init-declarator> ::= <declarator>
+ *                     | <declarator> = <initializer>
+ *
+ * <declarator> ::= <identifier>
+ *
+ * <initializer> ::= <additive-expr>
+ *
+ * <jump> ::= return <expr>;
+ */
 use super::code_gen_state::{CodeGenState, Variable};
 use super::expr::{Additive as AdditiveExpr, Expr};
 use token::{Token, Tokens};
