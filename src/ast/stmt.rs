@@ -40,7 +40,7 @@ pub enum Stmt {
 #[derive(Debug)]
 pub struct Decl {
     tyspec: Box<TypeSpecifier>,
-    inits: Vec<InitDeclarator>,
+    init: Box<InitDeclarator>,
 }
 
 #[derive(Debug)]
@@ -124,17 +124,9 @@ impl Stmt {
 impl Decl {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Decl {
         let tyspec = Box::new(TypeSpecifier::parse(tokens));
-
-        let mut inits = Vec::new();
-        loop {
-            if let Some(Token::SySemicolon) = tokens.peek() {
-                tokens.eat(Token::SySemicolon);
-                break;
-            }
-            inits.push(InitDeclarator::parse(tokens));
-        }
-
-        Decl { tyspec, inits }
+        let init = Box::new(InitDeclarator::parse(tokens));
+        tokens.eat(Token::SySemicolon);
+        Decl { tyspec, init }
     }
 
     pub fn gen_code(self, state: &mut CodeGenState) {
@@ -142,35 +134,34 @@ impl Decl {
             TypeSpecifier::Int => ("i32", 4),
         };
 
-        for init in self.inits {
-            let (ident, init_value) = match init {
-                InitDeclarator::Declarator(declarator) => match *declarator {
-                    Declarator::Identifier(ident) => (ident, None),
-                },
-                InitDeclarator::DeclaratorWithValue(declarator, initializer) => {
-                    match (*declarator, *initializer) {
-                        (Declarator::Identifier(ident), Initializer::Additive(additive)) => {
-                            (ident, Some(additive))
-                        }
+        // the below line is needed because of rust's limitation.
+        // (rust can't handle destructing and unboxing box of tuple at the same time)
+        let init = *self.init;
+        let (ident, init_value) = match init {
+            InitDeclarator::Declarator(declarator) => match *declarator {
+                Declarator::Identifier(ident) => (ident, None),
+            },
+            InitDeclarator::DeclaratorWithValue(declarator, initializer) => {
+                match (*declarator, *initializer) {
+                    (Declarator::Identifier(ident), Initializer::Additive(additive)) => {
+                        (ident, Some(additive))
                     }
                 }
-            };
-
-            if state.vars.contains_key(&ident) {
-                panic!("variable {} is already defined.", ident);
             }
+        };
+        if state.vars.contains_key(&ident) {
+            panic!("variable {} is already defined.", ident);
+        }
+        let reg = state.next_reg();
+        println!("  %{} = alloca {}, align {}", reg, tyir, align);
+        state.vars.insert(ident, Variable::new(tyir, align, reg));
+        if let Some(additive) = init_value {
+            let res = additive.gen_code(state);
 
-            let reg = state.next_reg();
-            println!("  %{} = alloca {}, align {}", reg, tyir, align);
-            state.vars.insert(ident, Variable::new(tyir, align, reg));
-            if let Some(additive) = init_value {
-                let res = additive.gen_code(state);
-
-                println!(
-                    "  store {} %{}, {}* %{}, align {}",
-                    tyir, res, tyir, reg, align
-                );
-            }
+            println!(
+                "  store {} %{}, {}* %{}, align {}",
+                tyir, res, tyir, reg, align
+            );
         }
     }
 }
