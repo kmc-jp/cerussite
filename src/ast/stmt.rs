@@ -77,6 +77,10 @@ impl Compound {
     }
 
     pub fn gen_code(self, state: &mut CodeGenState) {
+        for decl in self.decls {
+            decl.gen_code(state);
+        }
+
         for stmt in self.stmts {
             stmt.gen_code(state);
         }
@@ -120,6 +124,51 @@ impl Decl {
         }
 
         Decl { specs, inits }
+    }
+
+    pub fn gen_code(self, state: &mut CodeGenState) {
+        assert_eq!(
+            self.specs.len(),
+            1,
+            "currently only one type-specifier is supported for decleration."
+        );
+
+        let (tyir, align) = match self.specs.into_iter().next().unwrap() {
+            DeclSpecifier::TypeSpecifier(tyspec) => match *tyspec {
+                TypeSpecifier::Int => ("i32", 4),
+            },
+        };
+
+        for init in self.inits {
+            let (ident, init_value) = match init {
+                InitDeclarator::Declarator(declarator) => match *declarator {
+                    Declarator::Identifier(ident) => (ident, None),
+                },
+                InitDeclarator::DeclaratorWithValue(declarator, initializer) => {
+                    match (*declarator, *initializer) {
+                        (Declarator::Identifier(ident), Initializer::Additive(additive)) => {
+                            (ident, Some(additive))
+                        }
+                    }
+                }
+            };
+
+            if state.vars.contains_key(&ident) {
+                panic!("variable {} is already defined.", ident);
+            }
+
+            let reg = state.next_reg();
+            println!("  %{} = alloca {}, align {}", reg, tyir, align);
+            state.vars.insert(ident, reg);
+            if let Some(additive) = init_value {
+                let res = additive.gen_code(state);
+
+                println!(
+                    "  store {} %{}, {}* %{}, align {}",
+                    tyir, res, tyir, reg, align
+                );
+            }
+        }
     }
 }
 
