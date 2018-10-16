@@ -1,3 +1,4 @@
+use super::code_gen_state::CodeGenState;
 use super::expr::{Additive as AdditiveExpr, Expr};
 use token::{Token, Tokens};
 
@@ -75,12 +76,10 @@ impl Compound {
         }
     }
 
-    pub fn gen_code(self, mut reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) {
         for stmt in self.stmts {
-            reg = stmt.gen_code(reg);
-            reg += 1;
+            stmt.gen_code(state);
         }
-        reg
     }
 }
 
@@ -92,10 +91,10 @@ impl Stmt {
         }
     }
 
-    pub fn gen_code(self, reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) {
         match self {
-            Stmt::Compound(compound) => compound.gen_code(reg),
-            Stmt::Jump(jump) => jump.gen_code(reg),
+            Stmt::Compound(compound) => compound.gen_code(state),
+            Stmt::Jump(jump) => jump.gen_code(state),
         }
     }
 }
@@ -191,12 +190,17 @@ impl Jump {
         }
     }
 
-    pub fn gen_code(self, reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) {
         match self {
             Jump::Return(expr) => {
-                let reg = expr.gen_code(reg);
+                let reg = expr.gen_code(state);
                 println!("  ret i32 %{}", reg);
-                reg + 1
+
+                // because instruction `ret` is terminator, llvm introduces unnamed block after
+                // this instruction. this unnamed block is named by serial number, sharing the same
+                // numbering as instruction. so we must skip that number for the further
+                // (unreachable) instructions.
+                state.next_reg();
             }
         }
     }

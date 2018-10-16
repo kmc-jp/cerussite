@@ -1,3 +1,5 @@
+use super::code_gen_state::CodeGenState;
+
 #[derive(Debug)]
 pub enum Expr {
     Additive(Box<Additive>),
@@ -38,9 +40,9 @@ impl Expr {
         Expr::Additive(Box::new(Additive::parse(tokens)))
     }
 
-    pub fn gen_code(self, reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) -> usize {
         match self {
-            Expr::Additive(additive) => additive.gen_code(reg),
+            Expr::Additive(additive) => additive.gen_code(state),
         }
     }
 }
@@ -73,20 +75,22 @@ impl Additive {
         }
     }
 
-    pub fn gen_code(self, reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) -> usize {
         match self {
-            Additive::Multiplicative(multiplicative) => multiplicative.gen_code(reg),
+            Additive::Multiplicative(multiplicative) => multiplicative.gen_code(state),
             Additive::Add(additive, multiplicative) => {
-                let lhs = additive.gen_code(reg);
-                let rhs = multiplicative.gen_code(lhs + 1);
-                println!("  %{} = add i32 %{}, %{}", rhs + 1, lhs, rhs);
-                rhs + 1
+                let lhs = additive.gen_code(state);
+                let rhs = multiplicative.gen_code(state);
+                let reg = state.next_reg();
+                println!("  %{} = add i32 %{}, %{}", reg, lhs, rhs);
+                reg
             }
             Additive::Sub(additive, multiplicative) => {
-                let lhs = additive.gen_code(reg);
-                let rhs = multiplicative.gen_code(lhs + 1);
-                println!("  %{} = sub i32 %{}, %{}", rhs + 1, lhs, rhs);
-                rhs + 1
+                let lhs = additive.gen_code(state);
+                let rhs = multiplicative.gen_code(state);
+                let reg = state.next_reg();
+                println!("  %{} = sub i32 %{}, %{}", reg, lhs, rhs);
+                reg
             }
         }
     }
@@ -129,26 +133,29 @@ impl Multiplicative {
         }
     }
 
-    pub fn gen_code(self, reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) -> usize {
         match self {
-            Multiplicative::Unary(unary) => unary.gen_code(reg),
+            Multiplicative::Unary(unary) => unary.gen_code(state),
             Multiplicative::Mul(multiplicative, unary) => {
-                let lhs = multiplicative.gen_code(reg);
-                let rhs = unary.gen_code(lhs + 1);
-                println!("  %{} = mul i32 %{}, %{}", rhs + 1, lhs, rhs);
-                rhs + 1
+                let lhs = multiplicative.gen_code(state);
+                let rhs = unary.gen_code(state);
+                let reg = state.next_reg();
+                println!("  %{} = mul i32 %{}, %{}", reg, lhs, rhs);
+                reg
             }
             Multiplicative::Div(multiplicative, unary) => {
-                let lhs = multiplicative.gen_code(reg);
-                let rhs = unary.gen_code(lhs + 1);
-                println!("  %{} = sdiv i32 %{}, %{}", rhs + 1, lhs, rhs);
-                rhs + 1
+                let lhs = multiplicative.gen_code(state);
+                let rhs = unary.gen_code(state);
+                let reg = state.next_reg();
+                println!("  %{} = sdiv i32 %{}, %{}", reg, lhs, rhs);
+                reg
             }
             Multiplicative::Rem(multiplicative, unary) => {
-                let lhs = multiplicative.gen_code(reg);
-                let rhs = unary.gen_code(lhs + 1);
-                println!("  %{} = srem i32 %{}, %{}", rhs + 1, lhs, rhs);
-                rhs + 1
+                let lhs = multiplicative.gen_code(state);
+                let rhs = unary.gen_code(state);
+                let reg = state.next_reg();
+                println!("  %{} = srem i32 %{}, %{}", reg, lhs, rhs);
+                reg
             }
         }
     }
@@ -174,14 +181,15 @@ impl Unary {
         }
     }
 
-    pub fn gen_code(self, reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) -> usize {
         match self {
-            Unary::Primary(primary) => primary.gen_code(reg),
-            Unary::UnaryPlus(unary) => unary.gen_code(reg),
+            Unary::Primary(primary) => primary.gen_code(state),
+            Unary::UnaryPlus(unary) => unary.gen_code(state),
             Unary::UnaryMinus(unary) => {
-                let reg = unary.gen_code(reg);
-                println!("  %{} = sub i32 0, %{}", reg + 1, reg);
-                reg + 1
+                let unary = unary.gen_code(state);
+                let reg = state.next_reg();
+                println!("  %{} = sub i32 0, %{}", reg, unary);
+                reg
             }
         }
     }
@@ -205,13 +213,14 @@ impl Primary {
         }
     }
 
-    pub fn gen_code(self, reg: usize) -> usize {
+    pub fn gen_code(self, state: &mut CodeGenState) -> usize {
         match self {
             Primary::Constant(n) => {
+                let reg = state.next_reg();
                 println!("  %{} = add i32 {}, 0", reg, n);
                 reg
             }
-            Primary::Paren(expr) => expr.gen_code(reg),
+            Primary::Paren(expr) => expr.gen_code(state),
         }
     }
 }
