@@ -30,6 +30,7 @@ pub enum Unary {
 #[derive(Debug)]
 pub enum Primary {
     Constant(i32),
+    Identifier(String),
     Paren(Box<Expr>),
 }
 
@@ -207,6 +208,7 @@ impl Primary {
                 tokens.eat_err(Token::SyRPar, "no matching parens for primary expression.");
                 Primary::Paren(Box::new(expr))
             }
+            Some(Token::Ident(ident)) => Primary::Identifier(ident.into()),
             other => {
                 panic!("expected primary expression, found {:?}", other);
             }
@@ -218,6 +220,18 @@ impl Primary {
             Primary::Constant(n) => {
                 let reg = state.next_reg();
                 println!("  %{} = add i32 {}, 0", reg, n);
+                reg
+            }
+            Primary::Identifier(ident) => {
+                let reg = state.next_reg();
+                let var = state
+                    .vars
+                    .get(&ident)
+                    .expect(&format!("undeclared identifier: `{}`", ident));
+                println!(
+                    "  %{} = load {}, {}* %{}, align {}",
+                    reg, var.tyir, var.tyir, var.reg, var.align
+                );
                 reg
             }
             Primary::Paren(expr) => expr.gen_code(state),
