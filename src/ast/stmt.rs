@@ -23,7 +23,7 @@
  */
 use super::code_gen_state::{CodeGenState, Variable};
 use super::expr::{Additive as AdditiveExpr, Expr};
-use super::Result;
+use super::{ParseError, Result};
 use token::{Token, Tokens};
 
 #[derive(Debug)]
@@ -89,9 +89,10 @@ impl Compound {
                 }
                 Ok(Compound { stmts, decls })
             }
-            other => {
-                panic!("expected compound statement (`{{`), found {:?}", other);
-            }
+            other => Err(ParseError::Unexpected {
+                expected: "compound statement".into(),
+                found: format!("{:?}", other),
+            }),
         }
     }
 
@@ -171,7 +172,10 @@ impl TypeSpecifier {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<TypeSpecifier> {
         match tokens.next() {
             Some(Token::TyInt) => Ok(TypeSpecifier::Int),
-            other => panic!("expected type-specifier, found {:?}", other),
+            other => Err(ParseError::Unexpected {
+                expected: "type-specifier".into(),
+                found: format!("{:?}", other),
+            }),
         }
     }
 }
@@ -197,7 +201,10 @@ impl Declarator {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Declarator> {
         match tokens.next() {
             Some(Token::Ident(ident)) => Ok(Declarator::Identifier(ident.into())),
-            other => panic!("expected identifier, found {:?}", other),
+            other => Err(ParseError::Unexpected {
+                expected: "identifier".into(),
+                found: format!("{:?}", other),
+            }),
         }
     }
 }
@@ -221,7 +228,10 @@ impl Jump {
                 );
                 Ok(Jump::Return(Box::new(expr)))
             }
-            other => panic!("expected jump statement, found {:?}", other),
+            other => Err(ParseError::Unexpected {
+                expected: "jump statement".into(),
+                found: format!("{:?}", other),
+            }),
         }
     }
 

@@ -22,7 +22,7 @@
  *             | ( <expr> )
  */
 use super::code_gen_state::CodeGenState;
-use super::Result;
+use super::{ParseError, Result};
 
 #[derive(Debug)]
 pub enum Expr {
@@ -233,9 +233,10 @@ impl Primary {
                 Ok(Primary::Paren(Box::new(expr)))
             }
             Some(Token::Ident(ident)) => Ok(Primary::Identifier(ident.into())),
-            other => {
-                panic!("expected primary expression, found {:?}", other);
-            }
+            other => Err(ParseError::Unexpected {
+                expected: "primary expression".into(),
+                found: format!("{:?}", other),
+            }),
         }
     }
 
