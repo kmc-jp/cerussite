@@ -1,3 +1,26 @@
+/*
+ * BNF which expression parser can accept for now
+ *
+ *
+ * <expr> ::= <additive>
+ *
+ * <additive> ::= <multiplicative>
+ *              | <additive> + <multiplicative>
+ *              | <additive> - <multiplicative>
+ *
+ * <multiplicative> ::= <unary>
+ *                    | <multiplicative> * <unary>
+ *                    | <multiplicative> / <unary>
+ *                    | <multiplicative> % <unary>
+ *
+ * <unary> ::= <primary>
+ *           | + <unary>
+ *           | - <unary>
+ *
+ * <primary> ::= <constant>
+ *             | <identifier>
+ *             | ( <expr> )
+ */
 use super::code_gen_state::CodeGenState;
 
 #[derive(Debug)]
