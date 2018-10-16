@@ -1,4 +1,4 @@
-use super::code_gen_state::CodeGenState;
+use super::code_gen_state::{CodeGenState, Variable};
 use super::expr::{Additive as AdditiveExpr, Expr};
 use token::{Token, Tokens};
 
@@ -159,7 +159,7 @@ impl Decl {
 
             let reg = state.next_reg();
             println!("  %{} = alloca {}, align {}", reg, tyir, align);
-            state.vars.insert(ident, reg);
+            state.vars.insert(ident, Variable::new(tyir, align, reg));
             if let Some(additive) = init_value {
                 let res = additive.gen_code(state);
 
