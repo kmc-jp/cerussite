@@ -21,6 +21,7 @@ impl<'a> Instruction<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::register::*;
 
     #[test]
     fn test_value() {
