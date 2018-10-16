@@ -374,10 +374,12 @@ fn main() -> io::Result<()> {
         &test_src_dir,
         |path| path.extension().and_then(OsStr::to_str) != Some("c"),
         |path| {
-            colored_println! {
-                colorize();
-                LightGreen, "Removing ";
-                Reset, "{}", path.display();
+            if verbose {
+                colored_println! {
+                    colorize();
+                    LightGreen, "Removing ";
+                    Reset, "{}", path.display();
+                }
             }
             fs::remove_file(&path)
         },
