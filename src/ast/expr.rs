@@ -31,13 +31,11 @@ pub enum Primary {
     Paren(Box<Expr>),
 }
 
-use token::Token;
-use token::Tokens;
+use token::{Token, Tokens};
 
 impl Expr {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> (Expr, Tokens<'a>) {
-        let (additive, tokens) = Additive::parse(tokens);
-        (Expr::Additive(Box::new(additive)), tokens)
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Expr {
+        Expr::Additive(Box::new(Additive::parse(tokens)))
     }
 
     pub fn gen_code(self, reg: usize) -> usize {
@@ -52,24 +50,26 @@ impl Expr {
 /// <additive-dash> ::= OpAdd <multiplicative> <additive-dash>
 ///                   | OpSub <multiplicative> <additive-dash>
 impl Additive {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> (Additive, Tokens<'a>) {
-        let (lhs, tokens) = Multiplicative::parse(tokens);
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Additive {
+        let lhs = Multiplicative::parse(tokens);
         Additive::parse_additive_dash(Additive::Multiplicative(Box::new(lhs)), tokens)
     }
 
-    fn parse_additive_dash<'a>(lhs: Additive, tokens: Tokens<'a>) -> (Additive, Tokens<'a>) {
-        match tokens.iter().next() {
+    fn parse_additive_dash<'a>(lhs: Additive, tokens: &mut Tokens<'a>) -> Additive {
+        match tokens.peek() {
             Some(Token::OpAdd) => {
-                let (rhs, tokens) = Multiplicative::parse(&tokens[1..]);
+                tokens.eat(Token::OpAdd);
+                let rhs = Multiplicative::parse(tokens);
                 let additive = Additive::Add(Box::new(lhs), Box::new(rhs));
                 Additive::parse_additive_dash(additive, tokens)
             }
             Some(Token::OpSub) => {
-                let (rhs, tokens) = Multiplicative::parse(&tokens[1..]);
+                tokens.eat(Token::OpSub);
+                let rhs = Multiplicative::parse(tokens);
                 let additive = Additive::Sub(Box::new(lhs), Box::new(rhs));
                 Additive::parse_additive_dash(additive, tokens)
             }
-            _ => (lhs, tokens),
+            _ => lhs,
         }
     }
 
@@ -97,32 +97,35 @@ impl Additive {
 /// <multiplicative-dash> ::= OpMul <unary> <multiplicative-dash>
 ///                         | OpDiv <unary> <multiplicative-dash>
 impl Multiplicative {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> (Multiplicative, Tokens<'a>) {
-        let (lhs, tokens) = Unary::parse(tokens);
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Multiplicative {
+        let lhs = Unary::parse(tokens);
         Multiplicative::parse_multiplicative_dash(Multiplicative::Unary(Box::new(lhs)), tokens)
     }
 
     fn parse_multiplicative_dash<'a>(
         lhs: Multiplicative,
-        tokens: Tokens<'a>,
-    ) -> (Multiplicative, Tokens<'a>) {
-        match tokens.iter().next() {
+        tokens: &mut Tokens<'a>,
+    ) -> Multiplicative {
+        match tokens.peek() {
             Some(Token::OpMul) => {
-                let (rhs, tokens) = Unary::parse(&tokens[1..]);
+                tokens.eat(Token::OpMul);
+                let rhs = Unary::parse(tokens);
                 let multiplicative = Multiplicative::Mul(Box::new(lhs), Box::new(rhs));
                 Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
             }
             Some(Token::OpDiv) => {
-                let (rhs, tokens) = Unary::parse(&tokens[1..]);
+                tokens.eat(Token::OpDiv);
+                let rhs = Unary::parse(tokens);
                 let multiplicative = Multiplicative::Div(Box::new(lhs), Box::new(rhs));
                 Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
             }
             Some(Token::OpRem) => {
-                let (rhs, tokens) = Unary::parse(&tokens[1..]);
+                tokens.eat(Token::OpRem);
+                let rhs = Unary::parse(tokens);
                 let multiplicative = Multiplicative::Rem(Box::new(lhs), Box::new(rhs));
                 Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
             }
-            _ => (lhs, tokens),
+            _ => lhs,
         }
     }
 
@@ -152,19 +155,21 @@ impl Multiplicative {
 }
 
 impl Unary {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> (Unary, Tokens<'a>) {
-        match tokens[0] {
-            Token::OpAdd => {
-                let (unary, tokens) = Unary::parse(&tokens[1..]);
-                (Unary::UnaryPlus(Box::new(unary)), tokens)
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Unary {
+        match tokens.peek() {
+            Some(Token::OpAdd) => {
+                tokens.eat(Token::OpAdd);
+                let unary = Unary::parse(tokens);
+                Unary::UnaryPlus(Box::new(unary))
             }
-            Token::OpSub => {
-                let (unary, tokens) = Unary::parse(&tokens[1..]);
-                (Unary::UnaryMinus(Box::new(unary)), tokens)
+            Some(Token::OpSub) => {
+                tokens.eat(Token::OpSub);
+                let unary = Unary::parse(tokens);
+                Unary::UnaryMinus(Box::new(unary))
             }
             _ => {
-                let (primary, tokens) = Primary::parse(tokens);
-                (Unary::Primary(Box::new(primary)), tokens)
+                let primary = Primary::parse(tokens);
+                Unary::Primary(Box::new(primary))
             }
         }
     }
@@ -183,24 +188,19 @@ impl Unary {
 }
 
 impl Primary {
-    pub fn parse<'a>(tokens: Tokens<'a>) -> (Primary, Tokens<'a>) {
-        assert!(
-            !tokens.is_empty(),
-            "expected primary expression, found nothing."
-        );
-
-        match tokens[0] {
-            Token::Literal(n) => {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Primary {
+        match tokens.next() {
+            Some(Token::Literal(n)) => {
                 let constant = n.parse().expect("internal error: could not parse literal.");
-                (Primary::Constant(constant), &tokens[1..])
+                Primary::Constant(constant)
             }
-            Token::SyLPar => {
-                let (expr, tokens) = Expr::parse(&tokens[1..]);
-                assert_eq!(tokens[0], Token::SyRPar);
-                (Primary::Paren(Box::new(expr)), &tokens[1..])
+            Some(Token::SyLPar) => {
+                let expr = Expr::parse(tokens);
+                tokens.eat_err(Token::SyRPar, "no matching parens for primary expression.");
+                Primary::Paren(Box::new(expr))
             }
-            _ => {
-                panic!("expected primary expression, found {:?}", tokens);
+            other => {
+                panic!("expected primary expression, found {:?}", other);
             }
         }
     }
@@ -218,29 +218,22 @@ impl Primary {
 
 #[cfg(test)]
 mod tests {
-    use super::Expr;
-    use token::Token;
+    use super::*;
+    use token::{Token, Tokens};
 
     #[test]
-    fn it_works() {
-        println!("{:?}", Expr::parse(&[Token::Literal("42")]));
-        println!(
-            "{:?}",
-            Expr::parse(&[Token::Literal("40"), Token::OpAdd, Token::Literal("2")])
-        );
-        println!(
-            "{:?}",
-            Expr::parse(&[
+    fn parse_expr() {
+        let tests = vec![
+            Tokens::new(&[Token::Literal("42")]),
+            Tokens::new(&[Token::Literal("40"), Token::OpAdd, Token::Literal("2")]),
+            Tokens::new(&[
                 Token::Literal("42"),
                 Token::OpAdd,
                 Token::Literal("3"),
                 Token::OpMul,
-                Token::Literal("7")
-            ])
-        );
-        println!(
-            "{:?}",
-            Expr::parse(&[
+                Token::Literal("7"),
+            ]),
+            Tokens::new(&[
                 Token::Literal("42"),
                 Token::OpAdd,
                 Token::SyLPar,
@@ -251,8 +244,13 @@ mod tests {
                 Token::OpSub,
                 Token::Literal("15"),
                 Token::SyRPar,
-                Token::SyRPar
-            ])
-        );
+                Token::SyRPar,
+            ]),
+        ];
+
+        for mut tokens in tests {
+            println!("{:?}", Expr::parse(&mut tokens));
+            assert!(tokens.is_empty());
+        }
     }
 }
