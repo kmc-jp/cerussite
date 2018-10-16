@@ -20,14 +20,6 @@ mod tests {
     use super::super::register::*;
 
     #[test]
-    fn test_value() {
-        let a = IdentityGenerator::new();
-        let b = Register::new(&a);
-        let _c = Value::Constant(0);
-        let _d = Value::Register(&b);
-    }
-
-    #[test]
     fn test_instruction() {
         let gen = IdentityGenerator::new();
         let val1 = Value::Constant(1);
