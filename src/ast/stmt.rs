@@ -23,6 +23,7 @@
  */
 use super::code_gen_state::{CodeGenState, Variable};
 use super::expr::{Additive as AdditiveExpr, Expr};
+use super::Result;
 use token::{Token, Tokens};
 
 #[derive(Debug)]
@@ -70,23 +71,23 @@ pub enum Jump {
 }
 
 impl Compound {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Compound {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Compound> {
         match tokens.next() {
             Some(Token::SyLBrace) => {
                 let mut decls = Vec::new();
                 while let Some(Token::TyInt) = tokens.peek() {
-                    decls.push(Decl::parse(tokens));
+                    decls.push(Decl::parse(tokens)?);
                 }
 
                 let mut stmts = Vec::new();
                 loop {
-                    stmts.push(Stmt::parse(tokens));
+                    stmts.push(Stmt::parse(tokens)?);
                     if let Some(Token::SyRBrace) = tokens.peek() {
                         tokens.eat(Token::SyRBrace);
                         break;
                     }
                 }
-                Compound { stmts, decls }
+                Ok(Compound { stmts, decls })
             }
             other => {
                 panic!("expected compound statement (`{{`), found {:?}", other);
@@ -106,10 +107,10 @@ impl Compound {
 }
 
 impl Stmt {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Stmt {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Stmt> {
         match tokens.peek() {
-            Some(Token::SyLBrace) => Stmt::Compound(Box::new(Compound::parse(tokens))),
-            _ => Stmt::Jump(Box::new(Jump::parse(tokens))),
+            Some(Token::SyLBrace) => Ok(Stmt::Compound(Box::new(Compound::parse(tokens)?))),
+            _ => Ok(Stmt::Jump(Box::new(Jump::parse(tokens)?))),
         }
     }
 
@@ -122,11 +123,11 @@ impl Stmt {
 }
 
 impl Decl {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Decl {
-        let tyspec = Box::new(TypeSpecifier::parse(tokens));
-        let init = Box::new(InitDeclarator::parse(tokens));
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Decl> {
+        let tyspec = Box::new(TypeSpecifier::parse(tokens)?);
+        let init = Box::new(InitDeclarator::parse(tokens)?);
         tokens.eat(Token::SySemicolon);
-        Decl { tyspec, init }
+        Ok(Decl { tyspec, init })
     }
 
     pub fn gen_code(self, state: &mut CodeGenState) {
@@ -167,53 +168,58 @@ impl Decl {
 }
 
 impl TypeSpecifier {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> TypeSpecifier {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<TypeSpecifier> {
         match tokens.next() {
-            Some(Token::TyInt) => TypeSpecifier::Int,
+            Some(Token::TyInt) => Ok(TypeSpecifier::Int),
             other => panic!("expected type-specifier, found {:?}", other),
         }
     }
 }
 
 impl InitDeclarator {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> InitDeclarator {
-        let declarator = Declarator::parse(tokens);
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<InitDeclarator> {
+        let declarator = Declarator::parse(tokens)?;
         match tokens.peek() {
             Some(Token::OpAssign) => {
                 tokens.eat(Token::OpAssign);
-                let initializer = Initializer::parse(tokens);
-                InitDeclarator::DeclaratorWithValue(Box::new(declarator), Box::new(initializer))
+                let initializer = Initializer::parse(tokens)?;
+                Ok(InitDeclarator::DeclaratorWithValue(
+                    Box::new(declarator),
+                    Box::new(initializer),
+                ))
             }
-            _ => InitDeclarator::Declarator(Box::new(declarator)),
+            _ => Ok(InitDeclarator::Declarator(Box::new(declarator))),
         }
     }
 }
 
 impl Declarator {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Declarator {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Declarator> {
         match tokens.next() {
-            Some(Token::Ident(ident)) => Declarator::Identifier(ident.into()),
+            Some(Token::Ident(ident)) => Ok(Declarator::Identifier(ident.into())),
             other => panic!("expected identifier, found {:?}", other),
         }
     }
 }
 
 impl Initializer {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Initializer {
-        Initializer::Additive(Box::new(AdditiveExpr::parse(tokens)))
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Initializer> {
+        Ok(Initializer::Additive(Box::new(AdditiveExpr::parse(
+            tokens,
+        )?)))
     }
 }
 
 impl Jump {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Jump {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Jump> {
         match tokens.next() {
             Some(Token::KwReturn) => {
-                let expr = Expr::parse(tokens);
+                let expr = Expr::parse(tokens)?;
                 tokens.eat_err(
                     Token::SySemicolon,
                     "missing semicolon after jump statement.",
                 );
-                Jump::Return(Box::new(expr))
+                Ok(Jump::Return(Box::new(expr)))
             }
             other => panic!("expected jump statement, found {:?}", other),
         }

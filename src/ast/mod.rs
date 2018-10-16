@@ -26,12 +26,12 @@ pub enum Ast {
 }
 
 impl Ast {
-    pub fn parse<'a>(mut tokens: Tokens<'a>) -> Ast {
-        let stmt = Stmt::parse(&mut tokens);
+    pub fn parse<'a>(mut tokens: Tokens<'a>) -> Result<Ast> {
+        let stmt = Stmt::parse(&mut tokens)?;
         if !tokens.is_empty() {
             panic!("invalid tokens: {:?}", tokens);
         }
-        Ast::Stmt(stmt)
+        Ok(Ast::Stmt(stmt))
     }
 
     pub fn gen_code(self) {

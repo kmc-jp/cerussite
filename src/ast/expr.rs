@@ -22,6 +22,7 @@
  *             | ( <expr> )
  */
 use super::code_gen_state::CodeGenState;
+use super::Result;
 
 #[derive(Debug)]
 pub enum Expr {
@@ -60,8 +61,8 @@ pub enum Primary {
 use token::{Token, Tokens};
 
 impl Expr {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Expr {
-        Expr::Additive(Box::new(Additive::parse(tokens)))
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Expr> {
+        Ok(Expr::Additive(Box::new(Additive::parse(tokens)?)))
     }
 
     pub fn gen_code(self, state: &mut CodeGenState) -> usize {
@@ -76,26 +77,26 @@ impl Expr {
 /// <additive-dash> ::= OpAdd <multiplicative> <additive-dash>
 ///                   | OpSub <multiplicative> <additive-dash>
 impl Additive {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Additive {
-        let lhs = Multiplicative::parse(tokens);
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Additive> {
+        let lhs = Multiplicative::parse(tokens)?;
         Additive::parse_additive_dash(Additive::Multiplicative(Box::new(lhs)), tokens)
     }
 
-    fn parse_additive_dash<'a>(lhs: Additive, tokens: &mut Tokens<'a>) -> Additive {
+    fn parse_additive_dash<'a>(lhs: Additive, tokens: &mut Tokens<'a>) -> Result<Additive> {
         match tokens.peek() {
             Some(Token::OpAdd) => {
                 tokens.eat(Token::OpAdd);
-                let rhs = Multiplicative::parse(tokens);
+                let rhs = Multiplicative::parse(tokens)?;
                 let additive = Additive::Add(Box::new(lhs), Box::new(rhs));
                 Additive::parse_additive_dash(additive, tokens)
             }
             Some(Token::OpSub) => {
                 tokens.eat(Token::OpSub);
-                let rhs = Multiplicative::parse(tokens);
+                let rhs = Multiplicative::parse(tokens)?;
                 let additive = Additive::Sub(Box::new(lhs), Box::new(rhs));
                 Additive::parse_additive_dash(additive, tokens)
             }
-            _ => lhs,
+            _ => Ok(lhs),
         }
     }
 
@@ -125,35 +126,35 @@ impl Additive {
 /// <multiplicative-dash> ::= OpMul <unary> <multiplicative-dash>
 ///                         | OpDiv <unary> <multiplicative-dash>
 impl Multiplicative {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Multiplicative {
-        let lhs = Unary::parse(tokens);
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Multiplicative> {
+        let lhs = Unary::parse(tokens)?;
         Multiplicative::parse_multiplicative_dash(Multiplicative::Unary(Box::new(lhs)), tokens)
     }
 
     fn parse_multiplicative_dash<'a>(
         lhs: Multiplicative,
         tokens: &mut Tokens<'a>,
-    ) -> Multiplicative {
+    ) -> Result<Multiplicative> {
         match tokens.peek() {
             Some(Token::OpMul) => {
                 tokens.eat(Token::OpMul);
-                let rhs = Unary::parse(tokens);
+                let rhs = Unary::parse(tokens)?;
                 let multiplicative = Multiplicative::Mul(Box::new(lhs), Box::new(rhs));
                 Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
             }
             Some(Token::OpDiv) => {
                 tokens.eat(Token::OpDiv);
-                let rhs = Unary::parse(tokens);
+                let rhs = Unary::parse(tokens)?;
                 let multiplicative = Multiplicative::Div(Box::new(lhs), Box::new(rhs));
                 Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
             }
             Some(Token::OpRem) => {
                 tokens.eat(Token::OpRem);
-                let rhs = Unary::parse(tokens);
+                let rhs = Unary::parse(tokens)?;
                 let multiplicative = Multiplicative::Rem(Box::new(lhs), Box::new(rhs));
                 Multiplicative::parse_multiplicative_dash(multiplicative, tokens)
             }
-            _ => lhs,
+            _ => Ok(lhs),
         }
     }
 
@@ -186,21 +187,21 @@ impl Multiplicative {
 }
 
 impl Unary {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Unary {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Unary> {
         match tokens.peek() {
             Some(Token::OpAdd) => {
                 tokens.eat(Token::OpAdd);
-                let unary = Unary::parse(tokens);
-                Unary::UnaryPlus(Box::new(unary))
+                let unary = Unary::parse(tokens)?;
+                Ok(Unary::UnaryPlus(Box::new(unary)))
             }
             Some(Token::OpSub) => {
                 tokens.eat(Token::OpSub);
-                let unary = Unary::parse(tokens);
-                Unary::UnaryMinus(Box::new(unary))
+                let unary = Unary::parse(tokens)?;
+                Ok(Unary::UnaryMinus(Box::new(unary)))
             }
             _ => {
-                let primary = Primary::parse(tokens);
-                Unary::Primary(Box::new(primary))
+                let primary = Primary::parse(tokens)?;
+                Ok(Unary::Primary(Box::new(primary)))
             }
         }
     }
@@ -220,18 +221,18 @@ impl Unary {
 }
 
 impl Primary {
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Primary {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Result<Primary> {
         match tokens.next() {
             Some(Token::Literal(n)) => {
                 let constant = n.parse().expect("internal error: could not parse literal.");
-                Primary::Constant(constant)
+                Ok(Primary::Constant(constant))
             }
             Some(Token::SyLPar) => {
-                let expr = Expr::parse(tokens);
+                let expr = Expr::parse(tokens)?;
                 tokens.eat_err(Token::SyRPar, "no matching parens for primary expression.");
-                Primary::Paren(Box::new(expr))
+                Ok(Primary::Paren(Box::new(expr)))
             }
-            Some(Token::Ident(ident)) => Primary::Identifier(ident.into()),
+            Some(Token::Ident(ident)) => Ok(Primary::Identifier(ident.into())),
             other => {
                 panic!("expected primary expression, found {:?}", other);
             }

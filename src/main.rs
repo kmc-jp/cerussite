@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         _ => panic!("compilation error"),
     };
 
-    let ast = Ast::parse(Tokens::new(tokens));
+    let ast = Ast::parse(Tokens::new(tokens))?;
 
     println!("define i32 @main() #0 {{");
     let _ = ast.gen_code();
