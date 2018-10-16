@@ -11,11 +11,18 @@ use std::{error, fmt, result};
 pub type Result<T> = result::Result<T, ParseError>;
 
 #[derive(Debug)]
-pub enum ParseError {}
+pub enum ParseError {
+    Unexpected { expected: String, found: String },
+}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, b: &mut fmt::Formatter) -> fmt::Result {
-        write!(b, "{:?}", *self)
+        match *self {
+            ParseError::Unexpected {
+                ref expected,
+                ref found,
+            } => write!(b, "expected {}, found {}", expected, found),
+        }
     }
 }
 
