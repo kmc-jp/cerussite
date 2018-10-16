@@ -23,7 +23,21 @@ fn main() -> io::Result<()> {
     }
 
     // build cerussite
-    eprintln!("> building cerussite with `cargo test`");
+    eprintln!("> building cerussite");
+    let res = Command::new("cargo")
+        .arg("build")
+        .current_dir(&root)
+        .spawn()?
+        .wait()?;
+    if !res.success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            "building cerussite failed.",
+        ));
+    }
+
+    // test cerussite
+    eprintln!("> testing cerussite");
     let res = Command::new("cargo")
         .arg("test")
         .current_dir(&root)
@@ -32,7 +46,7 @@ fn main() -> io::Result<()> {
     if !res.success() {
         return Err(io::Error::new(
             io::ErrorKind::Other,
-            "building cerussite failed.",
+            "testing cerussite failed.",
         ));
     }
 
