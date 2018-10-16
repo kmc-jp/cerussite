@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod builder;
 mod instruction;
 mod register;
