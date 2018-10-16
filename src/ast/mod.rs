@@ -1,6 +1,8 @@
+pub mod code_gen_state;
 pub mod expr;
 pub mod stmt;
 
+use self::code_gen_state::CodeGenState;
 use self::stmt::Stmt;
 use token::Tokens;
 
@@ -17,9 +19,10 @@ impl Ast {
         Ast::Stmt(stmt)
     }
 
-    pub fn gen_code(self) -> usize {
+    pub fn gen_code(self) {
+        let mut state = CodeGenState::new();
         match self {
-            Ast::Stmt(stmt) => stmt.gen_code(1),
+            Ast::Stmt(stmt) => stmt.gen_code(&mut state),
         }
     }
 }
