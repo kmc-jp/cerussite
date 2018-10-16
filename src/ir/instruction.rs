@@ -1,4 +1,3 @@
-use super::register::IdentityGenerator;
 use super::register::Register;
 
 pub enum Value<'a> {
