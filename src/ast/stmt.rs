@@ -39,13 +39,8 @@ pub enum Stmt {
 
 #[derive(Debug)]
 pub struct Decl {
-    specs: Vec<DeclSpecifier>,
+    tyspec: Box<TypeSpecifier>,
     inits: Vec<InitDeclarator>,
-}
-
-#[derive(Debug)]
-pub enum DeclSpecifier {
-    TypeSpecifier(Box<TypeSpecifier>),
 }
 
 #[derive(Debug)]
@@ -79,7 +74,7 @@ impl Compound {
         match tokens.next() {
             Some(Token::SyLBrace) => {
                 let mut decls = Vec::new();
-                while Decl::lookahead_is_parsable(tokens) {
+                while let Some(Token::TyInt) = tokens.peek() {
                     decls.push(Decl::parse(tokens));
                 }
 
@@ -127,15 +122,8 @@ impl Stmt {
 }
 
 impl Decl {
-    pub fn lookahead_is_parsable<'a>(tokens: &Tokens<'a>) -> bool {
-        DeclSpecifier::lookahead_is_parsable(tokens)
-    }
-
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Decl {
-        let mut specs = Vec::new();
-        while DeclSpecifier::lookahead_is_parsable(tokens) {
-            specs.push(DeclSpecifier::parse(tokens));
-        }
+        let tyspec = Box::new(TypeSpecifier::parse(tokens));
 
         let mut inits = Vec::new();
         loop {
@@ -146,20 +134,12 @@ impl Decl {
             inits.push(InitDeclarator::parse(tokens));
         }
 
-        Decl { specs, inits }
+        Decl { tyspec, inits }
     }
 
     pub fn gen_code(self, state: &mut CodeGenState) {
-        assert_eq!(
-            self.specs.len(),
-            1,
-            "currently only one type-specifier is supported for decleration."
-        );
-
-        let (tyir, align) = match self.specs.into_iter().next().unwrap() {
-            DeclSpecifier::TypeSpecifier(tyspec) => match *tyspec {
-                TypeSpecifier::Int => ("i32", 4),
-            },
+        let (tyir, align) = match *self.tyspec {
+            TypeSpecifier::Int => ("i32", 4),
         };
 
         for init in self.inits {
@@ -195,21 +175,7 @@ impl Decl {
     }
 }
 
-impl DeclSpecifier {
-    pub fn lookahead_is_parsable<'a>(tokens: &Tokens<'a>) -> bool {
-        TypeSpecifier::lookahead_is_parsable(tokens)
-    }
-
-    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> DeclSpecifier {
-        DeclSpecifier::TypeSpecifier(Box::new(TypeSpecifier::parse(tokens)))
-    }
-}
-
 impl TypeSpecifier {
-    pub fn lookahead_is_parsable<'a>(tokens: &Tokens<'a>) -> bool {
-        tokens.peek() == Some(Token::TyInt)
-    }
-
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> TypeSpecifier {
         match tokens.next() {
             Some(Token::TyInt) => TypeSpecifier::Int,
