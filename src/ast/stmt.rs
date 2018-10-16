@@ -56,7 +56,7 @@ impl Compound {
         match tokens.next() {
             Some(Token::SyLBrace) => {
                 let mut decls = Vec::new();
-                while Decl::is_your_job(tokens) {
+                while Decl::lookahead_is_parsable(tokens) {
                     decls.push(Decl::parse(tokens));
                 }
 
@@ -104,13 +104,13 @@ impl Stmt {
 }
 
 impl Decl {
-    pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
-        DeclSpecifier::is_your_job(tokens)
+    pub fn lookahead_is_parsable<'a>(tokens: &Tokens<'a>) -> bool {
+        DeclSpecifier::lookahead_is_parsable(tokens)
     }
 
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Decl {
         let mut specs = Vec::new();
-        while DeclSpecifier::is_your_job(tokens) {
+        while DeclSpecifier::lookahead_is_parsable(tokens) {
             specs.push(DeclSpecifier::parse(tokens));
         }
 
@@ -173,8 +173,8 @@ impl Decl {
 }
 
 impl DeclSpecifier {
-    pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
-        TypeSpecifier::is_your_job(tokens)
+    pub fn lookahead_is_parsable<'a>(tokens: &Tokens<'a>) -> bool {
+        TypeSpecifier::lookahead_is_parsable(tokens)
     }
 
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> DeclSpecifier {
@@ -183,7 +183,7 @@ impl DeclSpecifier {
 }
 
 impl TypeSpecifier {
-    pub fn is_your_job<'a>(tokens: &Tokens<'a>) -> bool {
+    pub fn lookahead_is_parsable<'a>(tokens: &Tokens<'a>) -> bool {
         tokens.peek() == Some(Token::TyInt)
     }
 
