@@ -47,6 +47,8 @@ define_tokens! {
     literal OpDiv: "/";
     literal OpRem: "%";
 
+    literal OpAssign: "=";
+
     literal SyLPar: "(";
     literal SyRPar: ")";
     literal SyLBrace: "{";
