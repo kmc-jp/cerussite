@@ -1,7 +1,7 @@
 use super::instruction::Instruction;
-use super::instruction::Value;
 use super::register::IdentityGenerator;
 use super::register::Register;
+use super::value::Value;
 
 pub struct Builder(IdentityGenerator);
 impl<'a> Builder {

@@ -3,11 +3,12 @@
 mod builder;
 mod instruction;
 mod register;
+mod value;
 
 #[cfg(test)]
 mod tests {
     use super::builder::*;
-    use super::instruction::*;
+    use super::value::*;
 
     #[test]
     fn test() {
