@@ -1,13 +1,11 @@
 use super::instruction::Instruction;
-use super::register::IdentityGenerator;
 use super::register::Register;
 use super::value::Value;
 
-pub struct Builder(IdentityGenerator);
+pub struct Builder();
 impl Builder {
     pub fn new() -> Builder {
-        let gen = IdentityGenerator::new();
-        Builder(gen)
+        Builder()
     }
     pub fn ret(&self, val: Value) -> Instruction {
         Instruction::Ret(val)

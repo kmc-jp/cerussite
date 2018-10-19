@@ -14,17 +14,6 @@ impl Identity {
     }
 }
 
-pub struct IdentityGenerator(Identity);
-impl IdentityGenerator {
-    pub fn new() -> IdentityGenerator {
-        let id = Identity::new();
-        IdentityGenerator(id)
-    }
-    fn generate(&self) -> Identity {
-        self.0.next()
-    }
-}
-
 enum RegisterName {
     Unnamed(),
     Numbering(i32),
@@ -58,14 +47,6 @@ mod tests {
         let c = b.next();
         assert_ne!(a, b);
         assert_eq!(a, c);
-    }
-
-    #[test]
-    fn test_identity_generator() {
-        let a = IdentityGenerator::new();
-        let b = a.generate();
-        let c = a.generate();
-        assert_ne!(b, c);
     }
 
     #[test]
