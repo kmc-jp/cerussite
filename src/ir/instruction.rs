@@ -5,14 +5,6 @@ pub enum Instruction {
     Ret(Value),
     Add(Register, Value, Value),
 }
-impl Instruction {
-    pub fn target(&self) -> Option<Value> {
-        match self {
-            Instruction::Ret(_) => None,
-            Instruction::Add(target, _, _) => Some(Value::Register(target.clone())),
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {
