@@ -1,16 +1,21 @@
 use std::vec::Vec;
+use super::block::BasicBlock;
 use super::instruction::Instruction;
 use super::register::Register;
 use super::value::Value;
 
-pub struct Builder(Vec<Instruction>);
+pub struct Builder(Vec<BasicBlock>);
 impl Builder {
     pub fn new() -> Builder {
-        let vec = Vec::new();
+        let reg = Register::new();
+        let bb = BasicBlock::new(reg);
+        let mut vec = Vec::new();
+        vec.push(bb);
         Builder(vec)
     }
     fn push(&mut self, inst: Instruction) {
-        self.0.push(inst)
+        let last = self.0.len() - 1;
+        self.0[last].push(inst)
     }
     pub fn ret(&mut self, val: Value) {
         let ret = Instruction::Ret(val);

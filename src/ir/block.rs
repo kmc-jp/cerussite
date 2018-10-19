@@ -2,13 +2,13 @@ use std::vec::Vec;
 use super::instruction::Instruction;
 use super::register::Register;
 
-struct BasicBlock(Register, Vec<Instruction>);
+pub struct BasicBlock(Register, Vec<Instruction>);
 impl BasicBlock {
-    fn new(reg: Register) -> BasicBlock {
+    pub fn new(reg: Register) -> BasicBlock {
         let vec = Vec::new();
         BasicBlock(reg, vec)
     }
-    fn push(&mut self, inst: Instruction) {
+    pub fn push(&mut self, inst: Instruction) {
         self.1.push(inst)
     }
 }
