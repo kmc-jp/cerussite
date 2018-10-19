@@ -6,9 +6,7 @@
  * <stmt> ::= <compound>
  *          | <jump>
  *
- * <decl> ::= {<decl-specifier>}+ {<init-declarator>}*};
- *
- * <decl-specifier> ::= <type-specifier>
+ * <decl> ::= <type-specifier> <init-declarator>;
  *
  * <type-specifier> ::= int
  *
