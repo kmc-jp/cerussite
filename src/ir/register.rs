@@ -38,6 +38,11 @@ impl Reg {
     }
 }
 
+enum RegisterName {
+    Unnamed(),
+    Numbering(i32),
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,5 +70,11 @@ mod tests {
         let b = Reg::new(&a);
         let c = Reg::new(&a);
         assert_ne!(b, c);
+    }
+
+    #[test]
+    fn test_register_name() {
+        let _a = RegisterName::Unnamed();
+        let _b = RegisterName::Numbering(0);
     }
 }
