@@ -55,6 +55,11 @@ impl Register {
         self.0.set(name)
     }
 }
+impl Clone for Register {
+    fn clone(&self) -> Register {
+        Register(self.0.clone())
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -94,6 +99,7 @@ mod tests {
     #[test]
     fn test_register() {
         let a = Register::new();
-        a.set(0);
+        let b = a.clone();
+        b.set(0);
     }
 }
