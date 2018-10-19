@@ -12,7 +12,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let b = Builder::new();
+        let mut b = Builder::new();
         let v0 = Value::Constant(0);
         let v1 = Value::Constant(1);
         let v2 = Value::Constant(2);

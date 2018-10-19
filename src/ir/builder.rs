@@ -9,6 +9,9 @@ impl Builder {
         let vec = Vec::new();
         Builder(vec)
     }
+    fn push(&mut self, inst: Instruction) {
+        self.0.push(inst)
+    }
     pub fn ret(&self, val: Value) -> Instruction {
         Instruction::Ret(val)
     }
@@ -23,7 +26,7 @@ mod tests {
     use super::*;
 
     fn test_builder() {
-        let builder = Builder::new();
+        let mut builder = Builder::new();
         let lhs = Value::Constant(0);
         let rhs = Value::Constant(1);
         let add = builder.add(lhs, rhs);
