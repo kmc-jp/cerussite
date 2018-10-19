@@ -1,19 +1,6 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
-#[derive(Debug, Eq, PartialEq)]
-struct Identity(Cell<i32>);
-impl Identity {
-    fn new() -> Identity {
-        Identity(Cell::new(0))
-    }
-    fn next(&self) -> Identity {
-        let prev = self.0.get();
-        self.0.set(prev + 1);
-        Identity(Cell::new(prev))
-    }
-}
-
 enum RegisterName {
     Unnamed(),
     Numbering(i32),
@@ -39,15 +26,6 @@ impl Clone for Register {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_identity() {
-        let a = Identity::new();
-        let b = Identity::new();
-        let c = b.next();
-        assert_ne!(a, b);
-        assert_eq!(a, c);
-    }
 
     #[test]
     fn test_register_name() {
