@@ -1,12 +1,12 @@
 use super::register::Register;
 use super::value::Value;
 
-pub enum Instruction<'a> {
-    Ret(Value<'a>),
-    Add(Register, Value<'a>, Value<'a>),
+pub enum Instruction {
+    Ret(Value),
+    Add(Register, Value, Value),
 }
-impl<'a> Instruction<'a> {
-    pub fn target(&self) -> Option<Value<'a>> {
+impl Instruction {
+    pub fn target(&self) -> Option<Value> {
         match self {
             Instruction::Ret(_) => None,
             Instruction::Add(target, _, _) => Some(Value::Register(target.clone())),

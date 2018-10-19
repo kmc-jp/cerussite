@@ -1,10 +1,10 @@
 use super::register::Reg;
 use super::register::Register;
 
-pub enum Value<'a> {
+pub enum Value {
     Constant(i32),
     Register(Register),
-    Reg(&'a Reg),
+    Reg(Reg),
 }
 
 #[cfg(test)]
