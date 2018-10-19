@@ -19,7 +19,7 @@ mod tests {
         let v3 = Value::Constant(3);
         let a0 = b.add(v0, v1);
         let a1 = b.add(v2, v3);
-        let a2 = b.add(a0.target().unwrap(), a1.target().unwrap());
-        b.ret(a2.target().unwrap());
+        let a2 = b.add(a0, a1);
+        b.ret(a2);
     }
 }
