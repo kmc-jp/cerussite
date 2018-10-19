@@ -45,6 +45,12 @@ enum RegisterName {
 }
 
 struct Register(Rc<Cell<RegisterName>>);
+impl Register {
+    fn new() -> Register {
+        let name = RegisterName::Unnamed();
+        Register(Rc::new(Cell::new(name)))
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -83,9 +89,6 @@ mod tests {
 
     #[test]
     fn test_register() {
-        let a = RegisterName::Unnamed();
-        let b = Cell::new(a);
-        let c = Rc::new(b);
-        let _d = Register(c);
+        let _a = Register::new();
     }
 }
