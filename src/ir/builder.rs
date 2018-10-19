@@ -12,8 +12,9 @@ impl Builder {
     fn push(&mut self, inst: Instruction) {
         self.0.push(inst)
     }
-    pub fn ret(&self, val: Value) -> Instruction {
-        Instruction::Ret(val)
+    pub fn ret(&mut self, val: Value) {
+        let ret = Instruction::Ret(val);
+        self.push(ret)
     }
     pub fn add(&self, lhs: Value, rhs: Value) -> Instruction {
         let reg = Register::new();
@@ -31,6 +32,6 @@ mod tests {
         let rhs = Value::Constant(1);
         let add = builder.add(lhs, rhs);
         let target = add.target().unwrap();
-        let _ret = builder.ret(target);
+        builder.ret(target);
     }
 }

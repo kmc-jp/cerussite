@@ -20,6 +20,6 @@ mod tests {
         let a0 = b.add(v0, v1);
         let a1 = b.add(v2, v3);
         let a2 = b.add(a0.target().unwrap(), a1.target().unwrap());
-        let _ = b.ret(a2.target().unwrap());
+        b.ret(a2.target().unwrap());
     }
 }

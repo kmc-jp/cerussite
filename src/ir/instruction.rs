@@ -25,6 +25,6 @@ mod tests {
         let reg = Register::new();
         let add = Instruction::Add(reg, val1, val2);
         let val3 = add.target().unwrap();
-        let _ret = Instruction::Ret(val3);
+        Instruction::Ret(val3);
     }
 }
