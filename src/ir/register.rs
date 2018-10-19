@@ -1,4 +1,5 @@
 use std::cell::Cell;
+use std::rc::Rc;
 
 #[derive(Debug, Eq, PartialEq)]
 struct Identity(Cell<i32>);
@@ -43,6 +44,8 @@ enum RegisterName {
     Numbering(i32),
 }
 
+struct Register(Rc<Cell<RegisterName>>);
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -65,7 +68,7 @@ mod tests {
     }
 
     #[test]
-    fn test_register() {
+    fn test_reg() {
         let a = IdentityGenerator::new();
         let b = Reg::new(&a);
         let c = Reg::new(&a);
@@ -76,5 +79,13 @@ mod tests {
     fn test_register_name() {
         let _a = RegisterName::Unnamed();
         let _b = RegisterName::Numbering(0);
+    }
+
+    #[test]
+    fn test_register() {
+        let a = RegisterName::Unnamed();
+        let b = Cell::new(a);
+        let c = Rc::new(b);
+        let _d = Register(c);
     }
 }
