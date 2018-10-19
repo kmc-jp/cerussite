@@ -1,11 +1,13 @@
+use std::vec::Vec;
 use super::instruction::Instruction;
 use super::register::Register;
 use super::value::Value;
 
-pub struct Builder();
+pub struct Builder(Vec<Instruction>);
 impl Builder {
     pub fn new() -> Builder {
-        Builder()
+        let vec = Vec::new();
+        Builder(vec)
     }
     pub fn ret(&self, val: Value) -> Instruction {
         Instruction::Ret(val)
