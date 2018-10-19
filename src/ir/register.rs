@@ -44,13 +44,13 @@ enum RegisterName {
     Numbering(i32),
 }
 
-struct Register(Rc<Cell<RegisterName>>);
+pub struct Register(Rc<Cell<RegisterName>>);
 impl Register {
-    fn new() -> Register {
+    pub fn new() -> Register {
         let name = RegisterName::Unnamed();
         Register(Rc::new(Cell::new(name)))
     }
-    fn set(&self, n: i32) {
+    pub fn set(&self, n: i32) {
         let name = RegisterName::Numbering(n);
         self.0.set(name)
     }

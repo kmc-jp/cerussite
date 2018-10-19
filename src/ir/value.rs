@@ -1,20 +1,20 @@
 use super::register::Reg;
+use super::register::Register;
 
 pub enum Value<'a> {
     Constant(i32),
+    Register(Register),
     Reg(&'a Reg),
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::register::*;
 
     #[test]
     fn test_value() {
-        let a = IdentityGenerator::new();
-        let b = Reg::new(&a);
-        let _c = Value::Constant(0);
-        let _d = Value::Reg(&b);
+        let a = Register::new();
+        let _b = Value::Constant(0);
+        let _c = Value::Register(a);
     }
 }

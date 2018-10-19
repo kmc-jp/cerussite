@@ -1,6 +1,6 @@
 use super::instruction::Instruction;
 use super::register::IdentityGenerator;
-use super::register::Reg;
+use super::register::Register;
 use super::value::Value;
 
 pub struct Builder(IdentityGenerator);
@@ -13,7 +13,7 @@ impl<'a> Builder {
         Instruction::Ret(val)
     }
     pub fn add(&self, lhs: Value<'a>, rhs: Value<'a>) -> Instruction<'a> {
-        let reg = Reg::new(&self.0);
+        let reg = Register::new();
         Instruction::Add(reg, lhs, rhs)
     }
 }
