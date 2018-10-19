@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod block;
 mod builder;
 mod instruction;
 mod register;
