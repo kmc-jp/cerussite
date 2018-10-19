@@ -50,6 +50,10 @@ impl Register {
         let name = RegisterName::Unnamed();
         Register(Rc::new(Cell::new(name)))
     }
+    fn set(&self, n: i32) {
+        let name = RegisterName::Numbering(n);
+        self.0.set(name)
+    }
 }
 
 #[cfg(test)]
@@ -89,6 +93,7 @@ mod tests {
 
     #[test]
     fn test_register() {
-        let _a = Register::new();
+        let a = Register::new();
+        a.set(0);
     }
 }
