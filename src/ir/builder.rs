@@ -15,12 +15,17 @@ impl Builder {
         Instruction::Add(reg, lhs, rhs)
     }
 }
-#[test]
-fn test_builder() {
-    let builder = Builder::new();
-    let lhs = Value::Constant(0);
-    let rhs = Value::Constant(1);
-    let add = builder.add(lhs, rhs);
-    let target = add.target().unwrap();
-    let _ret = builder.ret(target);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_builder() {
+        let builder = Builder::new();
+        let lhs = Value::Constant(0);
+        let rhs = Value::Constant(1);
+        let add = builder.add(lhs, rhs);
+        let target = add.target().unwrap();
+        let _ret = builder.ret(target);
+    }
 }
