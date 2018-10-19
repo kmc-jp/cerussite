@@ -1,10 +1,8 @@
-use super::register::Reg;
 use super::register::Register;
 
 pub enum Value {
     Constant(i32),
     Register(Register),
-    Reg(Reg),
 }
 
 #[cfg(test)]

@@ -25,20 +25,6 @@ impl IdentityGenerator {
     }
 }
 
-#[derive(Debug)]
-pub struct Reg(Identity);
-impl PartialEq for Reg {
-    fn eq(&self, other: &Reg) -> bool {
-        self.0 == other.0
-    }
-}
-impl Eq for Reg {}
-impl Reg {
-    pub fn new(gen: &IdentityGenerator) -> Reg {
-        Reg(gen.generate())
-    }
-}
-
 enum RegisterName {
     Unnamed(),
     Numbering(i32),
@@ -79,14 +65,6 @@ mod tests {
         let a = IdentityGenerator::new();
         let b = a.generate();
         let c = a.generate();
-        assert_ne!(b, c);
-    }
-
-    #[test]
-    fn test_reg() {
-        let a = IdentityGenerator::new();
-        let b = Reg::new(&a);
-        let c = Reg::new(&a);
         assert_ne!(b, c);
     }
 
