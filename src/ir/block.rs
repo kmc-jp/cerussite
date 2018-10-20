@@ -14,6 +14,9 @@ impl BasicBlock {
     fn push(&mut self, inst: Instruction) {
         self.1.push(inst)
     }
+    pub fn print_header(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "; <label>:{}:", self.0)
+    }
     pub fn numbering(&self, init: i32) -> i32 {
         let mut init = self.0.set(init);
         for inst in &self.1 {
@@ -39,7 +42,6 @@ impl BasicBlock {
 }
 impl fmt::Display for BasicBlock {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        writeln!(f, "; <label>:{}:", self.0);
         for inst in &self.1 {
             writeln!(f, "  {}", inst);
         }

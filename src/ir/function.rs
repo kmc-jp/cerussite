@@ -27,6 +27,7 @@ impl fmt::Display for Function {
         for block in &self.1 {
             if !first {
                 writeln!(f, "");
+                block.print_header(f);
             }
             write!(f, "{}", block);
             first = false;
