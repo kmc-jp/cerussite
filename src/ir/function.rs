@@ -11,6 +11,12 @@ impl Function {
     pub fn push(&mut self, block: BasicBlock) {
         self.1.push(block)
     }
+    fn numbering(&self) {
+        let mut init = 0;
+        for block in &self.1 {
+            init = block.numbering(init);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -22,5 +28,6 @@ mod tests {
         let mut func = Function::new();
         let block = BasicBlock::new();
         func.push(block);
+        func.numbering();
     }
 }
