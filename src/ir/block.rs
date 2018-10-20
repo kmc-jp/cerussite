@@ -10,7 +10,7 @@ impl BasicBlock {
         let vec = Vec::new();
         BasicBlock(reg, vec)
     }
-    pub fn push(&mut self, inst: Instruction) {
+    fn push(&mut self, inst: Instruction) {
         self.1.push(inst)
     }
     pub fn label(&self) -> Value {
