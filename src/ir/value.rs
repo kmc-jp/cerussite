@@ -1,10 +1,19 @@
 use std::cell::Cell;
+use std::fmt;
 use std::rc::Rc;
 use std::rc::Weak;
 
 enum RegisterName {
     Unnamed(),
     Numbering(i32),
+}
+impl fmt::Display for RegisterName {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            RegisterName::Unnamed() => Err(fmt::Error),
+            RegisterName::Numbering(n) => write!(f, "%{}", n),
+        }
+    }
 }
 
 pub struct Register(Rc<Cell<RegisterName>>);
@@ -39,7 +48,8 @@ mod tests {
     #[test]
     fn test_register_name() {
         let _a = RegisterName::Unnamed();
-        let _b = RegisterName::Numbering(0);
+        let b = RegisterName::Numbering(0);
+        println!("{}", b);
     }
 
     #[test]
