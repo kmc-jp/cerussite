@@ -19,8 +19,10 @@ impl fmt::Display for Instruction {
         match self {
             Instruction::Ret(val) =>
                 write!(f, "ret i32 {}", val),
-            Instruction::Add(reg, lhs, rhs) =>
-                write!(f, "{} = add i32 {}, {}", reg, lhs, rhs),
+            Instruction::Add(reg, lhs, rhs) => {
+                let target = Value::Register(reg.make_ref());
+                write!(f, "{} = add i32 {}, {}", target, lhs, rhs)
+            },
         }
     }
 }

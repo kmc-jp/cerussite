@@ -12,7 +12,7 @@ impl fmt::Display for RegisterName {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             RegisterName::Unnamed() => Err(fmt::Error),
-            RegisterName::Numbering(n) => write!(f, "%{}", n),
+            RegisterName::Numbering(n) => write!(f, "{}", n),
         }
     }
 }
@@ -57,8 +57,8 @@ impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Value::Constant(n) => write!(f, "{}", n),
-            Value::Register(weak) => write!(f, "{}", weak),
-            Value::Label(weak) => write!(f, "{}", weak),
+            Value::Register(weak) => write!(f, "%{}", weak),
+            Value::Label(weak) => write!(f, "%{}", weak),
         }
     }
 }
