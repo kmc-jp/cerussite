@@ -33,7 +33,7 @@ pub struct WeakRegister(Weak<Cell<RegisterName>>);
 pub enum Value {
     Constant(i32),
     Register(WeakRegister),
-    Label(Register),
+    Label(WeakRegister),
 }
 
 #[cfg(test)]
@@ -65,6 +65,6 @@ mod tests {
         let a = Register::new();
         let _b = Value::Constant(0);
         let _c = Value::Register(a.make_ref());
-        let _c = Value::Label(a.clone());
+        let _c = Value::Label(a.make_ref());
     }
 }
