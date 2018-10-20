@@ -9,13 +9,12 @@ mod value;
 
 #[cfg(test)]
 mod tests {
-    use super::builder::*;
+    use super::block::*;
     use super::value::*;
 
     #[test]
     fn test() {
-        let mut b = Builder::new();
-        let _bl = b.block();
+        let mut b = BasicBlock::new();
         let v0 = Value::Constant(0);
         let v1 = Value::Constant(1);
         let v2 = Value::Constant(2);

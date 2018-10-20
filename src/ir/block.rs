@@ -17,6 +17,16 @@ impl BasicBlock {
         let reg = self.0.clone();
         Value::Label(reg)
     }
+    pub fn ret(&mut self, val: Value) {
+        let ret = Instruction::Ret(val);
+        self.push(ret)
+    }
+    pub fn add(&mut self, lhs: Value, rhs: Value) -> Value {
+        let reg = Register::new();
+        let add = Instruction::Add(reg.clone(), lhs, rhs);
+        self.push(add);
+        Value::Register(reg)
+    }
 }
 
 #[cfg(test)]
@@ -26,9 +36,10 @@ mod tests {
     #[test]
     fn test_basic_block() {
         let mut bb = BasicBlock::new();
-        let val = Value::Constant(0);
-        let inst = Instruction::Ret(val);
+        let lhs = Value::Constant(0);
+        let rhs = Value::Constant(1);
+        let add = bb.add(lhs, rhs);
+        bb.ret(add);
         let _label = bb.label();
-        bb.push(inst);
     }
 }
