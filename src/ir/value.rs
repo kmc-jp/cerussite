@@ -41,6 +41,12 @@ impl fmt::Display for Register {
 }
 
 pub struct WeakRegister(Weak<Cell<RegisterName>>);
+impl fmt::Display for WeakRegister {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let name = self.0.upgrade().ok_or(fmt::Error)?.get();
+        write!(f, "{}", name)
+    }
+}
 
 pub enum Value {
     Constant(i32),
@@ -71,6 +77,10 @@ mod tests {
     fn test_weak_register() {
         let a = Weak::new();
         let _b = WeakRegister(a);
+        let c = Register::new();
+        let d = c.make_ref();
+        c.set(0);
+        println!("{}", d);
     }
 
     #[test]
