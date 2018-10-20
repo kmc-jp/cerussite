@@ -2,6 +2,13 @@ use std::vec::Vec;
 use super::block::BasicBlock;
 
 struct Function(String, Vec<BasicBlock>);
+impl Function {
+    fn new() -> Function {
+        let name = String::from("main");
+        let vec = Vec::new();
+        Function(name, vec)
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -9,8 +16,6 @@ mod tests {
 
     #[test]
     fn test_function() {
-        let str = String::from("main");
-        let vec = Vec::new();
-        let _func = Function(str, vec);
+        let _func = Function::new();
     }
 }
