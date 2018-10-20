@@ -1,3 +1,4 @@
+use std::fmt;
 use std::vec::Vec;
 use super::instruction::Instruction;
 use super::value::Register;
@@ -36,6 +37,15 @@ impl BasicBlock {
         Value::Register(weak)
     }
 }
+impl fmt::Display for BasicBlock {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "; <label>:{}:", self.0);
+        for inst in &self.1 {
+            writeln!(f, "  {}", inst);
+        }
+        Ok(())
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -50,5 +60,6 @@ mod tests {
         bb.ret(add);
         let _label = bb.label();
         let _end = bb.numbering(0);
+        println!("{}", bb);
     }
 }
