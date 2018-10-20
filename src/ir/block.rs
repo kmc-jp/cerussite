@@ -13,6 +13,13 @@ impl BasicBlock {
     fn push(&mut self, inst: Instruction) {
         self.1.push(inst)
     }
+    pub fn numbering(&self, init: i32) -> i32 {
+        let mut init = self.0.set(init);
+        for inst in &self.1 {
+            init = inst.numbering(init);
+        }
+        init
+    }
     pub fn label(&self) -> Value {
         let weak = self.0.make_ref();
         Value::Label(weak)
@@ -42,5 +49,6 @@ mod tests {
         let add = bb.add(lhs, rhs);
         bb.ret(add);
         let _label = bb.label();
+        let _end = bb.numbering(0);
     }
 }
