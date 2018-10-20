@@ -1,5 +1,6 @@
 use std::cell::Cell;
 use std::rc::Rc;
+use std::rc::Weak;
 
 enum RegisterName {
     Unnamed(),
@@ -23,6 +24,8 @@ impl Clone for Register {
     }
 }
 
+struct WeakRegister(Weak<Cell<RegisterName>>);
+
 pub enum Value {
     Constant(i32),
     Register(Register),
@@ -44,6 +47,12 @@ mod tests {
         let a = Register::new();
         let b = a.clone();
         b.set(0);
+    }
+
+    #[test]
+    fn test_weak_register() {
+        let a = Weak::new();
+        let _b = WeakRegister(a);
     }
 
     #[test]
