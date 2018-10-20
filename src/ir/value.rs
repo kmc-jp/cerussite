@@ -17,7 +17,7 @@ impl Register {
         let name = RegisterName::Numbering(n);
         self.0.set(name)
     }
-    fn make_ref(&self) -> WeakRegister {
+    pub fn make_ref(&self) -> WeakRegister {
         let name = Rc::downgrade(&self.0);
         WeakRegister(name)
     }
@@ -28,11 +28,11 @@ impl Clone for Register {
     }
 }
 
-struct WeakRegister(Weak<Cell<RegisterName>>);
+pub struct WeakRegister(Weak<Cell<RegisterName>>);
 
 pub enum Value {
     Constant(i32),
-    Register(Register),
+    Register(WeakRegister),
     Label(Register),
 }
 
@@ -64,7 +64,7 @@ mod tests {
     fn test_value() {
         let a = Register::new();
         let _b = Value::Constant(0);
-        let _c = Value::Register(a.clone());
+        let _c = Value::Register(a.make_ref());
         let _c = Value::Label(a.clone());
     }
 }

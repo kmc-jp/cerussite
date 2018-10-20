@@ -25,7 +25,7 @@ impl BasicBlock {
         let reg = Register::new();
         let add = Instruction::Add(reg.clone(), lhs, rhs);
         self.push(add);
-        Value::Register(reg)
+        Value::Register(reg.make_ref())
     }
 }
 
