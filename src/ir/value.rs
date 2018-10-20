@@ -17,6 +17,10 @@ impl Register {
         let name = RegisterName::Numbering(n);
         self.0.set(name)
     }
+    fn make_ref(&self) -> WeakRegister {
+        let name = Rc::downgrade(&self.0);
+        WeakRegister(name)
+    }
 }
 impl Clone for Register {
     fn clone(&self) -> Register {
@@ -47,6 +51,7 @@ mod tests {
         let a = Register::new();
         let b = a.clone();
         b.set(0);
+        let _c = a.make_ref();
     }
 
     #[test]
