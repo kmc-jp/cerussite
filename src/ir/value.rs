@@ -53,6 +53,15 @@ pub enum Value {
     Register(WeakRegister),
     Label(WeakRegister),
 }
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Value::Constant(n) => write!(f, "{}", n),
+            Value::Register(weak) => write!(f, "{}", weak),
+            Value::Label(weak) => write!(f, "{}", weak),
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -86,8 +95,12 @@ mod tests {
     #[test]
     fn test_value() {
         let a = Register::new();
-        let _b = Value::Constant(0);
-        let _c = Value::Register(a.make_ref());
-        let _c = Value::Label(a.make_ref());
+        let b = Value::Constant(0);
+        let c = Value::Register(a.make_ref());
+        let d = Value::Label(a.make_ref());
+        a.set(0);
+        println!("{}", b);
+        println!("{}", c);
+        println!("{}", d);
     }
 }
