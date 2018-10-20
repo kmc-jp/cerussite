@@ -20,7 +20,7 @@ impl fmt::Display for Instruction {
             Instruction::Ret(val) =>
                 write!(f, "ret i32 {}", val),
             Instruction::Add(reg, lhs, rhs) => {
-                let target = Value::Register(reg.make_ref());
+                let target = reg.register();
                 write!(f, "{} = add i32 {}, {}", target, lhs, rhs)
             },
         }
@@ -37,9 +37,9 @@ mod tests {
         let reg1 = Register::new();
         let reg2 = Register::new();
         let reg3 = Register::new();
-        let val1 = Value::Register(reg1.make_ref());
-        let val2 = Value::Register(reg2.make_ref());
-        let val3 = Value::Register(reg3.make_ref());
+        let val1 = reg1.register();
+        let val2 = reg2.register();
+        let val3 = reg3.register();
         let add = Instruction::Add(reg, val1, val2);
         let ret = Instruction::Ret(val3);
         let mut init = 0;

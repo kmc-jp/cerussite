@@ -34,10 +34,10 @@ impl BasicBlock {
     }
     pub fn add(&mut self, lhs: Value, rhs: Value) -> Value {
         let reg = Register::new();
-        let weak = reg.make_ref();
+        let target = reg.register();
         let add = Instruction::Add(reg, lhs, rhs);
         self.push(add);
-        Value::Register(weak)
+        target
     }
 }
 impl fmt::Display for BasicBlock {
