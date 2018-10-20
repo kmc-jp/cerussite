@@ -70,6 +70,11 @@ impl fmt::Display for Value {
         }
     }
 }
+impl From<i32> for Value {
+    fn from(n: i32) -> Value {
+        Value::Constant(n)
+    }
+}
 
 #[cfg(test)]
 mod tests {

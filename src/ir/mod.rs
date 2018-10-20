@@ -15,10 +15,10 @@ mod tests {
     fn test() {
         let mut f = Function::new();
         let mut b = BasicBlock::new();
-        let v0 = Value::Constant(0);
-        let v1 = Value::Constant(1);
-        let v2 = Value::Constant(2);
-        let v3 = Value::Constant(3);
+        let v0 = Value::from(0);
+        let v1 = Value::from(1);
+        let v2 = Value::from(2);
+        let v3 = Value::from(3);
         let a0 = b.add(v0, v1);
         let a1 = b.add(v2, v3);
         let a2 = b.add(a0, a1);

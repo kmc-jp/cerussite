@@ -55,8 +55,8 @@ mod tests {
     #[test]
     fn test_basic_block() {
         let mut bb = BasicBlock::new();
-        let lhs = Value::Constant(0);
-        let rhs = Value::Constant(1);
+        let lhs = Value::from(0);
+        let rhs = Value::from(1);
         let add = bb.add(lhs, rhs);
         bb.ret(add);
         let _label = bb.label();
