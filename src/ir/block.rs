@@ -1,6 +1,6 @@
 use std::vec::Vec;
 use super::instruction::Instruction;
-use super::register::Register;
+use super::value::Register;
 use super::value::Value;
 
 pub struct BasicBlock(Register, Vec<Instruction>);
