@@ -25,8 +25,7 @@ impl BasicBlock {
         init
     }
     pub fn label(&self) -> Value {
-        let weak = self.0.make_ref();
-        Value::Label(weak)
+        self.0.label()
     }
     pub fn ret(&mut self, val: Value) {
         let ret = Instruction::Ret(val);

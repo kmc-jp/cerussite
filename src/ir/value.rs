@@ -28,13 +28,17 @@ impl Register {
         self.0.set(name);
         n + 1
     }
-    pub fn make_ref(&self) -> WeakRegister {
+    fn make_ref(&self) -> WeakRegister {
         let name = Rc::downgrade(&self.0);
         WeakRegister(name)
     }
     pub fn register(&self) -> Value {
         let weak = self.make_ref();
         Value::Register(weak)
+    }
+    pub fn label(&self) -> Value {
+        let weak = self.make_ref();
+        Value::Label(weak)
     }
 }
 impl fmt::Display for Register {
@@ -84,6 +88,7 @@ mod tests {
         let _b = a.make_ref();
         let _c = a.set(0);
         let _d = a.register();
+        let _e = a.label();
         println!("{}", a);
     }
 
