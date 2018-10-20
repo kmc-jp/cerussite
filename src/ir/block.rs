@@ -43,7 +43,7 @@ impl BasicBlock {
 impl fmt::Display for BasicBlock {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for inst in &self.1 {
-            writeln!(f, "  {}", inst);
+            writeln!(f, "  {}", inst)?;
         }
         Ok(())
     }
