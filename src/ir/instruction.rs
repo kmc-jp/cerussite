@@ -1,32 +1,25 @@
 use super::register::Register;
 use super::value::Value;
 
-pub enum Instruction<'a> {
-    Ret(Value<'a>),
-    Add(Register, Value<'a>, Value<'a>),
-}
-impl<'a> Instruction<'a> {
-    pub fn target(&'a self) -> Option<Value<'a>> {
-        match self {
-            Instruction::Ret(_) => None,
-            Instruction::Add(target, _, _) => Some(Value::Register(&target)),
-        }
-    }
+pub enum Instruction {
+    Ret(Value),
+    Add(Register, Value, Value),
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::register::*;
 
     #[test]
     fn test_instruction() {
-        let gen = IdentityGenerator::new();
-        let val1 = Value::Constant(1);
-        let val2 = Value::Constant(2);
-        let reg = Register::new(&gen);
-        let add = Instruction::Add(reg, val1, val2);
-        let val3 = add.target().unwrap();
+        let reg = Register::new();
+        let reg1 = Register::new();
+        let reg2 = Register::new();
+        let reg3 = Register::new();
+        let val1 = Value::Register(reg1);
+        let val2 = Value::Register(reg2);
+        let val3 = Value::Register(reg3);
+        let _add = Instruction::Add(reg, val1, val2);
         let _ret = Instruction::Ret(val3);
     }
 }
