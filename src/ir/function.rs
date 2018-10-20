@@ -16,13 +16,11 @@ impl Function {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::register::Register;
 
     #[test]
     fn test_function() {
         let mut func = Function::new();
-        let reg = Register::new();
-        let block = BasicBlock::new(reg);
+        let block = BasicBlock::new();
         func.push(block);
     }
 }

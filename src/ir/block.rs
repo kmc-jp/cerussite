@@ -5,7 +5,8 @@ use super::value::Value;
 
 pub struct BasicBlock(Register, Vec<Instruction>);
 impl BasicBlock {
-    pub fn new(reg: Register) -> BasicBlock {
+    pub fn new() -> BasicBlock {
+        let reg = Register::new();
         let vec = Vec::new();
         BasicBlock(reg, vec)
     }
@@ -24,8 +25,7 @@ mod tests {
 
     #[test]
     fn test_basic_block() {
-        let reg = Register::new();
-        let mut bb = BasicBlock::new(reg);
+        let mut bb = BasicBlock::new();
         let val = Value::Constant(0);
         let inst = Instruction::Ret(val);
         let _label = bb.label();

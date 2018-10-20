@@ -15,10 +15,10 @@ impl Builder {
         self.0[last].push(inst)
     }
     pub fn block(&mut self) -> Value {
-        let reg = Register::new();
-        let bb = BasicBlock::new(reg.clone());
+        let bb = BasicBlock::new();
+        let label = bb.label();
         self.0.push(bb);
-        Value::Register(reg)
+        label
     }
     pub fn ret(&mut self, val: Value) {
         let ret = Instruction::Ret(val);
