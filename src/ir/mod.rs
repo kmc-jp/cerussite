@@ -24,5 +24,6 @@ mod tests {
         let a2 = b.add(a0, a1);
         b.ret(a2);
         f.push(b);
+        println!("{}", f);
     }
 }

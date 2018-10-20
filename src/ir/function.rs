@@ -1,3 +1,4 @@
+use std::fmt;
 use std::vec::Vec;
 use super::block::BasicBlock;
 
@@ -18,6 +19,21 @@ impl Function {
         }
     }
 }
+impl fmt::Display for Function {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.numbering();
+        writeln!(f, "define i32 @{}() {{", self.0);
+        let mut first = true;
+        for block in &self.1 {
+            if !first {
+                writeln!(f, "");
+            }
+            write!(f, "{}", block);
+            first = false;
+        }
+        writeln!(f, "}}")
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -29,5 +45,6 @@ mod tests {
         let block = BasicBlock::new();
         func.push(block);
         func.numbering();
+        println!("{}", func);
     }
 }
