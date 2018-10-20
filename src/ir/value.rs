@@ -22,11 +22,6 @@ impl Register {
         WeakRegister(name)
     }
 }
-impl Clone for Register {
-    fn clone(&self) -> Register {
-        Register(self.0.clone())
-    }
-}
 
 pub struct WeakRegister(Weak<Cell<RegisterName>>);
 
@@ -49,9 +44,8 @@ mod tests {
     #[test]
     fn test_register() {
         let a = Register::new();
-        let b = a.clone();
-        b.set(0);
-        let _c = a.make_ref();
+        let _b = a.make_ref();
+        a.set(0);
     }
 
     #[test]
