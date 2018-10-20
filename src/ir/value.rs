@@ -3,6 +3,7 @@ use std::fmt;
 use std::rc::Rc;
 use std::rc::Weak;
 
+#[derive(Copy, Clone)]
 enum RegisterName {
     Unnamed(),
     Numbering(i32),
@@ -32,6 +33,12 @@ impl Register {
         WeakRegister(name)
     }
 }
+impl fmt::Display for Register {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let name = self.0.get();
+        write!(f, "{}", name)
+    }
+}
 
 pub struct WeakRegister(Weak<Cell<RegisterName>>);
 
@@ -57,6 +64,7 @@ mod tests {
         let a = Register::new();
         let _b = a.make_ref();
         let _c = a.set(0);
+        println!("{}", a);
     }
 
     #[test]
