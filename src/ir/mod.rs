@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod block;
 mod builder;
 mod instruction;
 mod register;
@@ -13,6 +14,7 @@ mod tests {
     #[test]
     fn test() {
         let mut b = Builder::new();
+        let _bl = b.block();
         let v0 = Value::Constant(0);
         let v1 = Value::Constant(1);
         let v2 = Value::Constant(2);
