@@ -1,4 +1,4 @@
-use super::register::Register;
+use super::value::Register;
 use super::value::Value;
 
 pub enum Instruction {

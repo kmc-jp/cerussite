@@ -3,7 +3,6 @@
 mod block;
 mod function;
 mod instruction;
-mod register;
 mod value;
 
 #[cfg(test)]
