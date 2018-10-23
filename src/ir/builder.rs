@@ -1,18 +1,26 @@
+use std::vec::Vec;
 use super::instruction::Instruction;
 use super::register::Register;
 use super::value::Value;
 
-pub struct Builder();
+pub struct Builder(Vec<Instruction>);
 impl Builder {
     pub fn new() -> Builder {
-        Builder()
+        let vec = Vec::new();
+        Builder(vec)
     }
-    pub fn ret(&self, val: Value) -> Instruction {
-        Instruction::Ret(val)
+    fn push(&mut self, inst: Instruction) {
+        self.0.push(inst)
     }
-    pub fn add(&self, lhs: Value, rhs: Value) -> Instruction {
+    pub fn ret(&mut self, val: Value) {
+        let ret = Instruction::Ret(val);
+        self.push(ret)
+    }
+    pub fn add(&mut self, lhs: Value, rhs: Value) -> Value {
         let reg = Register::new();
-        Instruction::Add(reg, lhs, rhs)
+        let add = Instruction::Add(reg.clone(), lhs, rhs);
+        self.push(add);
+        Value::Register(reg)
     }
 }
 
@@ -21,11 +29,10 @@ mod tests {
     use super::*;
 
     fn test_builder() {
-        let builder = Builder::new();
+        let mut builder = Builder::new();
         let lhs = Value::Constant(0);
         let rhs = Value::Constant(1);
         let add = builder.add(lhs, rhs);
-        let target = add.target().unwrap();
-        let _ret = builder.ret(target);
+        builder.ret(add);
     }
 }
