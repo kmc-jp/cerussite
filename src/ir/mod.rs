@@ -2,6 +2,7 @@
 
 mod block;
 mod builder;
+mod function;
 mod instruction;
 mod register;
 mod value;
