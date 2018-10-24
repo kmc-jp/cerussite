@@ -1,6 +1,12 @@
 #[derive(Debug)]
 pub enum Expr {
+    Assignment(Box<Assignment>),
+}
+
+#[derive(Debug)]
+pub enum Assignment {
     Additive(Box<Additive>),
+    Assign(Box<Unary>, Box<Assignment>),
 }
 
 #[derive(Debug)]
@@ -35,12 +41,45 @@ use token::{Token, Tokens};
 
 impl Expr {
     pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Expr {
-        Expr::Additive(Box::new(Additive::parse(tokens)))
+        Expr::Assignment(Box::new(Assignment::parse(tokens)))
     }
 
     pub fn gen_code(self, reg: usize) -> usize {
         match self {
-            Expr::Additive(additive) => additive.gen_code(reg),
+            Expr::Assignment(assignment) => assignment.gen_code(reg),
+        }
+    }
+}
+
+/// <assignment> ::= <additive>
+///                | <unary> OpAssign <assignment>
+impl Assignment {
+    pub fn parse<'a>(tokens: &mut Tokens<'a>) -> Assignment {
+        let lhs = Additive::parse(tokens);
+        match tokens.peek() {
+            Some(Token::OpAssign) => {
+                tokens.eat(Token::OpAssign);
+                let rhs = Assignment::parse(tokens);
+                let lhs = match lhs {
+                    Additive::Multiplicative(lhs) => *lhs,
+                    _ => panic!("left operand of assignment must be unary expression")
+                };
+                let lhs = match lhs {
+                    Multiplicative::Unary(lhs) => *lhs,
+                    _ => panic!("left operand of assignment must be unary expression")
+                };
+                Assignment::Assign(Box::new(lhs), Box::new(rhs))
+            }
+            _ => Assignment::Additive(Box::new(lhs))
+        }
+    }
+
+    pub fn gen_code(self, reg: usize) -> usize {
+        match self {
+            Assignment::Additive(additive) => additive.gen_code(reg),
+            Assignment::Assign(_unary, _assignment) => {
+                unimplemented!()
+            }
         }
     }
 }
