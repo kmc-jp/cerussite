@@ -14,7 +14,7 @@ impl BasicBlock {
         self.1.push(inst)
     }
     pub fn numbering(&self, init: i32) -> i32 {
-        let mut init = self.0.set(init);
+        let mut init = self.0.change_number(init);
         for inst in &self.1 {
             init = inst.numbering(init);
         }

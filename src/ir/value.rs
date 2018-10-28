@@ -13,7 +13,7 @@ impl Register {
         let name = RegisterName::Unnamed();
         Register(Rc::new(Cell::new(name)))
     }
-    pub fn set(&self, n: i32) -> i32 {
+    pub fn change_number(&self, n: i32) -> i32 {
         let name = RegisterName::Numbering(n);
         self.0.set(name);
         n + 1
@@ -46,7 +46,7 @@ mod tests {
     fn test_register() {
         let a = Register::new();
         let _b = a.make_ref();
-        let _c = a.set(0);
+        let _c = a.change_number(0);
     }
 
     #[test]

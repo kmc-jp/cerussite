@@ -9,7 +9,7 @@ impl Instruction {
     pub fn numbering(&self, init: i32) -> i32 {
         match self {
             Instruction::Ret(_) => init,
-            Instruction::Add(reg, _, _) => reg.set(init),
+            Instruction::Add(reg, _, _) => reg.change_number(init),
         }
     }
 }
