@@ -24,6 +24,13 @@ mod tests {
         let a2 = b.add(a0, a1);
         b.ret(a2);
         f.push(b);
-        println!("{}", f);
+        let expect = "define i32 @main() {
+  %1 = add i32 0, 1
+  %2 = add i32 2, 3
+  %3 = add i32 %1, %2
+  ret i32 %3
+}
+";
+        assert_eq!(f.to_string(), expect);
     }
 }

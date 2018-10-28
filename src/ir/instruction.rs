@@ -48,7 +48,7 @@ mod tests {
         init = reg3.set(init);
         init = add.numbering(init);
         let _end = ret.numbering(init);
-        println!("{}", add);
-        println!("{}", ret);
+        assert_eq!(add.to_string(), "%3 = add i32 %0, %1");
+        assert_eq!(ret.to_string(), "ret i32 %2");
     }
 }

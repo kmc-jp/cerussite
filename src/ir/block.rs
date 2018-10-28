@@ -62,6 +62,7 @@ mod tests {
         bb.ret(add);
         let _label = bb.label();
         let _end = bb.numbering(0);
-        println!("{}", bb);
+        let expect = "  %1 = add i32 0, 1\n  ret i32 %1\n";
+        assert_eq!(bb.to_string(), expect);
     }
 }

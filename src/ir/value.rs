@@ -71,7 +71,7 @@ mod tests {
     fn test_register_name() {
         let _a = RegisterName::Unnamed();
         let b = RegisterName::Numbering(0);
-        println!("{}", b);
+        assert_eq!(b.to_string(), "0");
     }
 
     #[test]
@@ -79,7 +79,7 @@ mod tests {
         let a = Register::new();
         let _b = a.make_ref();
         let _c = a.set(0);
-        println!("{}", a);
+        assert_eq!(a.to_string(), "0");
     }
 
     #[test]
@@ -89,7 +89,7 @@ mod tests {
         let c = Register::new();
         let d = c.make_ref();
         c.set(0);
-        println!("{}", d);
+        assert_eq!(d.to_string(), "0");
     }
 
     #[test]
@@ -99,8 +99,8 @@ mod tests {
         let c = Value::Register(a.make_ref());
         let d = Value::Label(a.make_ref());
         a.set(0);
-        println!("{}", b);
-        println!("{}", c);
-        println!("{}", d);
+        assert_eq!(b.to_string(), "0");
+        assert_eq!(c.to_string(), "%0");
+        assert_eq!(d.to_string(), "%0");
     }
 }

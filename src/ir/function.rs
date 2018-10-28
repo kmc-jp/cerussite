@@ -46,6 +46,7 @@ mod tests {
         let block = BasicBlock::new();
         func.push(block);
         func.numbering();
-        println!("{}", func);
+        let expect = "define i32 @main() {\n}\n";
+        assert_eq!(func.to_string(), expect);
     }
 }
