@@ -14,8 +14,10 @@ impl BasicBlock {
         self.1.push(inst)
     }
     pub fn numbering(&self, init: i32) -> i32 {
-        let mut init = self.0.change_number(init);
-        for inst in &self.1 {
+        let register = &self.0;
+        let instructions = &self.1;
+        let mut init = register.change_number(init);
+        for inst in instructions {
             init = inst.numbering(init);
         }
         init
