@@ -11,7 +11,7 @@ enum RegisterName {
 impl fmt::Display for RegisterName {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            RegisterName::Unnamed() => Err(fmt::Error),
+            RegisterName::Unnamed() => panic!(),
             RegisterName::Numbering(n) => write!(f, "{}", n),
         }
     }
