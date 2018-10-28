@@ -43,7 +43,7 @@ impl fmt::Display for Register {
 pub struct WeakRegister(Weak<Cell<RegisterName>>);
 impl fmt::Display for WeakRegister {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let name = self.0.upgrade().ok_or(fmt::Error)?.get();
+        let name = self.0.upgrade().unwrap().get();
         write!(f, "{}", name)
     }
 }
