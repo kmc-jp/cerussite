@@ -14,8 +14,8 @@ impl BasicBlock {
         self.1.push(inst)
     }
     pub fn label(&self) -> Value {
-        let reg = self.0.clone();
-        Value::Label(reg)
+        let weak = self.0.make_ref();
+        Value::Label(weak)
     }
     pub fn ret(&mut self, val: Value) {
         let ret = Instruction::Ret(val);
@@ -23,9 +23,10 @@ impl BasicBlock {
     }
     pub fn add(&mut self, lhs: Value, rhs: Value) -> Value {
         let reg = Register::new();
-        let add = Instruction::Add(reg.clone(), lhs, rhs);
+        let weak = reg.make_ref();
+        let add = Instruction::Add(reg, lhs, rhs);
         self.push(add);
-        Value::Register(reg)
+        Value::Register(weak)
     }
 }
 
