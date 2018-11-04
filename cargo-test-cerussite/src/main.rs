@@ -36,6 +36,20 @@ fn main() -> io::Result<()> {
         ));
     }
 
+    // test cerussite
+    eprintln!("> testing cerussite");
+    let res = Command::new("cargo")
+        .arg("test")
+        .current_dir(&root)
+        .spawn()?
+        .wait()?;
+    if !res.success() {
+        return Err(io::Error::new(
+            io::ErrorKind::Other,
+            "testing cerussite failed.",
+        ));
+    }
+
     // run test tool
     eprintln!("> running test");
     let mut args = env::args();
